@@ -1,13 +1,31 @@
 using Diorama.Internals.NamingStrategy;
+using Diorama.Internals.Persistent;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+ConfigurationManager config = builder.Configuration;
+IWebHostEnvironment env = builder.Environment;
+IServiceCollection services = builder.Services;
 
 // Add services to the container.
 
-builder.Services.AddControllers().AddJsonOptions(opts => opts.JsonSerializerOptions.PropertyNamingPolicy = new SnakeCaseNamingPolicy());
+services.AddControllers().AddJsonOptions(opts =>
+{
+    opts.JsonSerializerOptions.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+services.AddEndpointsApiExplorer();
+services.AddSwaggerGen();
+services.AddDbContext<Repository>(opts =>
+{
+    opts.UseNpgsql(
+        config
+        .GetConnectionString("Repository"))
+        .UseSnakeCaseNamingConvention()
+        .UseLoggerFactory(LoggerFactory.Create(builder => builder.AddConsole()))
+        .EnableSensitiveDataLogging();
+});
+services.AddDatabaseDeveloperPageExceptionFilter();
 
 var app = builder.Build();
 
@@ -15,7 +33,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(opts =>
+    {
+        opts.SwaggerEndpoint("/swagger/v1/swagger.json", "Diorama v1");
+        opts.RoutePrefix = "docs";
+    });
 }
 
 app.UseHttpsRedirection();
