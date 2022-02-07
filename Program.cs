@@ -1,22 +1,16 @@
-using Diorama.Internals.NamingStrategy;
 using Diorama.Internals.Persistent;
+using Diorama.RestAPI;
+using Diorama.RestAPI.Services;
+using Diorama.RestAPI.Repositories;
+using Diorama.RestAPI.Controllers;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 ConfigurationManager config = builder.Configuration;
 IWebHostEnvironment env = builder.Environment;
-IServiceCollection services = builder.Services;
+IServiceCollection serviceCollections = builder.Services;
 
-// Add services to the container.
-
-services.AddControllers().AddJsonOptions(opts =>
-{
-    opts.JsonSerializerOptions.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
-});
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-services.AddEndpointsApiExplorer();
-services.AddSwaggerGen();
-services.AddDbContext<Database>(opts =>
+serviceCollections.AddDbContext<Database>(opts =>
 {
     opts.UseNpgsql(
         config
@@ -25,7 +19,21 @@ services.AddDbContext<Database>(opts =>
         .UseLoggerFactory(LoggerFactory.Create(builder => builder.AddConsole()))
         .EnableSensitiveDataLogging();
 });
-services.AddDatabaseDeveloperPageExceptionFilter();
+
+// Add repository, service & controller layer to the container.
+ILayer[] layers = new ILayer[] {
+    new Repositories(serviceCollections),
+    new Services(serviceCollections),
+    new Controllers(serviceCollections)
+};
+foreach (ILayer layer in layers)
+{
+    layer.Build();
+}
+
+serviceCollections.AddEndpointsApiExplorer();
+serviceCollections.AddSwaggerGen();
+serviceCollections.AddDatabaseDeveloperPageExceptionFilter();
 
 var app = builder.Build();
 
