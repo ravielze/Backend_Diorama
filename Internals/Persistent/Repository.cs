@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 namespace Diorama.Internals.Persistent;
 
-public class Repository : DbContext
+public class Database : DbContext
 {
-    public Repository(DbContextOptions<Repository> options) : base(options)
+    public Database(DbContextOptions<Database> options) : base(options)
     {
     }
 }

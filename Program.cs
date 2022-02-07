@@ -16,11 +16,11 @@ services.AddControllers().AddJsonOptions(opts =>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
-services.AddDbContext<Repository>(opts =>
+services.AddDbContext<Database>(opts =>
 {
     opts.UseNpgsql(
         config
-        .GetConnectionString("Repository"))
+        .GetConnectionString("Database"))
         .UseSnakeCaseNamingConvention()
         .UseLoggerFactory(LoggerFactory.Create(builder => builder.AddConsole()))
         .EnableSensitiveDataLogging();
@@ -34,10 +34,11 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(opts =>
-    {
-        opts.SwaggerEndpoint("/swagger/v1/swagger.json", "Diorama v1");
-        opts.RoutePrefix = "docs";
-    });
+        {
+            opts.SwaggerEndpoint("/swagger/v1/swagger.json", "Diorama v1");
+            opts.RoutePrefix = "docs";
+        }
+    );
 }
 
 app.UseHttpsRedirection();
