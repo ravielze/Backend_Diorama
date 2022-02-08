@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using Diorama.Internals.Persistent;
+
 namespace Diorama.RestAPI.Repositories;
 
 public class Repositories : ILayer
@@ -11,6 +14,24 @@ public class Repositories : ILayer
 
     public void Build()
     {
-        //_services.AddScoped<ITestService, TestService>();
+        _services.AddScoped<IUserRepository, UserRepository>();
+    }
+}
+
+public class BaseRepository<TEntity> where TEntity : class
+{
+
+    protected DbSet<TEntity>? db;
+    protected Database dbContext;
+
+    public BaseRepository(Database dbContext, DbSet<TEntity>? dbSet)
+    {
+        this.db = dbSet;
+        this.dbContext = dbContext;
+    }
+
+    public int Save()
+    {
+        return dbContext.SaveChanges();
     }
 }

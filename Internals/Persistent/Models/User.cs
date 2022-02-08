@@ -12,10 +12,20 @@ public class User : BaseEntity, IModel
     public string Biography { get; set; } = "";
 
     public int UserRoleID { get; set; } = 0;
-    public UserRole Role { get; set; } = new UserRole();
+    public UserRole Role { get; set; }
     public string ProfilePicture { get; set; } = "";
     public int Following { get; set; } = 0;
     public int Followers { get; set; } = 0;
+
+    public User(UserRole role)
+    {
+        Role = role;
+    }
+
+    public User()
+    {
+        Role = new UserRole();
+    }
 
     public void Configure(ModelBuilder builder)
     {

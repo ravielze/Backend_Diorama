@@ -25,9 +25,9 @@ public class ModelOptions
     }
 }
 
-public class ModelWrappers
+public partial class Database : DbContext
 {
-    public DbSet<Follower>? Followers { get; set; }
-    public DbSet<User>? Users { get; set; }
+    public DbSet<User>? User { get; set; }
+    public DbSet<UserRole>? UserRole { get; set; }
     public DbSet<Post>? Post { get; set; }
 }

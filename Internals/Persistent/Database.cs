@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Diorama.Internals.Persistent.Models;
 namespace Diorama.Internals.Persistent;
 
-public class Database : DbContext
+public partial class Database : DbContext
 {
     public readonly ILoggerFactory MyLoggerFactory;
 
@@ -12,7 +12,6 @@ public class Database : DbContext
     }
 
     private readonly ModelOptions _modelOptions = new ModelOptions();
-    public readonly ModelWrappers Models = new ModelWrappers();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -51,12 +50,21 @@ public class Database : DbContext
         return (await base.SaveChangesAsync(cancellationToken));
     }
 
-    private void OnBeforeSaving()
+    protected void OnBeforeSaving()
     {
         var entries = ChangeTracker.Entries();
         var utcNow = DateTime.UtcNow;
         foreach (var entry in entries)
         {
+            if (entry.Entity is IBeforeSave bc)
+            {
+                var ok = bc.BeforeSave(bc);
+                if (!ok)
+                {
+                    entry.State = EntityState.Detached;
+                    continue;
+                }
+            }
             if (entry.Entity is BaseEntity trackable)
             {
                 switch (entry.State)
