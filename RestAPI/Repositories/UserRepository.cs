@@ -7,6 +7,7 @@ namespace Diorama.RestAPI.Repositories;
 public interface IUserRepository
 {
     void CreateNormalUser(User user);
+    void EditUser(User user, string name, string username, string biography, string profilePicture);
     void CreateAdmin(User user);
     User? Find(string username);
 }
@@ -30,6 +31,15 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         Save();
     }
 
+    public void EditUser(User user, string name, string username, string biography, string profilePicture) {
+        user.Name = name;
+        user.Username = username;
+        user.Biography = biography;
+        user.ProfilePicture = profilePicture;
+
+        Save();
+    }
+
     public void CreateNormalUser(User user)
     {
         var normalUserRole = dbRole?.Find(1);
@@ -43,7 +53,7 @@ public class UserRepository : BaseRepository<User>, IUserRepository
 
     public User? Find(string username)
     {
-        return db?.Where(x => x.Username == username).First();
+        return db?.Where(x => x.Username == username).First<User>();
     }
 
     public void CreateAdmin(User user)

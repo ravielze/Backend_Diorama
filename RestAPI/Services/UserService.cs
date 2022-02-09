@@ -1,12 +1,14 @@
 using Diorama.Internals.Resource;
 using Diorama.Internals.Contract;
 using Diorama.RestAPI.Repositories;
+using Diorama.Internals.Persistent.Models;
 
 namespace Diorama.RestAPI.Services;
 
 public interface IUserService
 {
     bool Authenticate(AuthContract contract);
+    bool EditUserProfile(EditUserContract contract);
 }
 
 public class UserService : IUserService
@@ -35,5 +37,35 @@ public class UserService : IUserService
         }
 
         return true;
+    }
+
+    public bool EditUserProfile(string username, EditUserContract contract) 
+    {   
+        var user = _repo.Find(username);
+        if (user == null) 
+        {
+            return false;
+        }
+
+        if (username != contract.Username && _repo.Find(contract.Username) != null) 
+        {
+            return false;
+        }
+
+        _repo.EditUser(
+            user, 
+            contract.Name, 
+            contract.Username, 
+            contract.Biography, 
+            contract.ProfilePicture,
+        );
+        return true;
+    }
+
+    public User? GetUserProfile(string username) 
+    {
+        var user = _repo.Find(username);
+
+        return user;
     }
 }
