@@ -37,6 +37,7 @@ public class ResponseHandlerMiddleware
             {
                 var code = HttpStatusCode.InternalServerError;
                 result.Change(code, "An unknown error has been occured");
+                Console.WriteLine(error);
             }
 
             await response.WriteAsync(result.ToString());
