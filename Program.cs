@@ -3,6 +3,7 @@ using Diorama.RestAPI;
 using Diorama.RestAPI.Services;
 using Diorama.RestAPI.Repositories;
 using Diorama.RestAPI.Controllers;
+using Diorama.RestAPI.Middleware;
 using Diorama.Internals.Resource;
 using Microsoft.EntityFrameworkCore;
 
@@ -38,6 +39,7 @@ serviceCollections.AddSwaggerGen();
 serviceCollections.AddDatabaseDeveloperPageExceptionFilter();
 
 var app = builder.Build();
+app.UseMiddleware<ResponseHandlerMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
