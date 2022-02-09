@@ -40,6 +40,7 @@ serviceCollections.AddDatabaseDeveloperPageExceptionFilter();
 
 var app = builder.Build();
 app.UseMiddleware<ResponseHandlerMiddleware>();
+app.UseMiddleware<AuthHandlerMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
