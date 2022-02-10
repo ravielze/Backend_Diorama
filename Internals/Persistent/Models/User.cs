@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Diorama.Internals.Contract;
+using Diorama.Internals.Resource;
 
 namespace Diorama.Internals.Persistent.Models;
 
@@ -25,6 +27,21 @@ public class User : BaseEntity, IModel
     public User()
     {
         Role = new UserRole();
+    }
+
+    public User(RegisterAuthContract contract, IHasher hasher)
+    {
+        Name = contract.Name;
+        Username = contract.Username;
+        Password = hasher.Hash(contract.Password);
+        Role = null!;
+    }
+
+    public User(AuthContract contract, IHasher hasher)
+    {
+        Username = contract.Username;
+        Password = hasher.Hash(contract.Password);
+        Role = null!;
     }
 
     public void Configure(ModelBuilder builder)

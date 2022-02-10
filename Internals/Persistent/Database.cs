@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Diorama.Internals.Persistent.Models;
 namespace Diorama.Internals.Persistent;
 
 public partial class Database : DbContext
