@@ -7,7 +7,7 @@ using Diorama.Internals.Attributes;
 namespace Diorama.RestAPI.Controllers;
 
 [ApiController]
-[Route("api/auth")]
+[Route("api/user")]
 public class UserController : ControllerBase
 {
     private readonly ILogger<UserController> _logger;
@@ -19,13 +19,13 @@ public class UserController : ControllerBase
         _service = service;
     }
 
-    [HttpPut("login")]
+    [HttpPost("login")]
     public void Login(AuthContract contract)
     {
         _service.Authenticate(contract);
     }
 
-    [HttpPut("register")]
+    [HttpPost("register")]
     public void Register(RegisterAuthContract contract)
     {
         _service.Register(contract);
@@ -35,7 +35,7 @@ public class UserController : ControllerBase
     [HttpGet("")]
     public void GetUserProfile()
     {
-        int userId = (int) HttpHelper.ContextItems["user_id"];
+        int userId = (int)HttpHelper.ContextItems["user_id"];
         _service.GetUserProfile(userId);
     }
 
@@ -43,7 +43,7 @@ public class UserController : ControllerBase
     [HttpPut("edit")]
     public void EditUserProfile(EditUserContract contract)
     {
-        int userId = (int) HttpHelper.ContextItems["user_id"];
+        int userId = (int)HttpHelper.ContextItems["user_id"];
         _service.EditUserProfile(userId, contract);
     }
 }
