@@ -15,7 +15,8 @@ public interface IUserService
 {
     void Authenticate(AuthContract contract);
     void Register(RegisterAuthContract contract);
-    bool EditUserProfile(string username, EditUserContract contract);
+    void EditUserProfile(int id, EditUserContract contract);
+    void GetUserProfile(int id);
 }
 
 public class UserService : IUserService
@@ -80,17 +81,17 @@ public class UserService : IUserService
         return tokenHandler.WriteToken(token);
     }
 
-    public bool EditUserProfile(string username, EditUserContract contract) 
+    public void EditUserProfile(int id, EditUserContract contract)
     {   
-        var user = _repo.Find(username);
+        var user = _repo.FindById(id);
         if (user == null) 
         {
-            return false;
+            throw new ResponseError(HttpStatusCode.NotFound, "User with spesific ID not found");
         }
 
-        if (username != contract.Username && _repo.Find(contract.Username) != null) 
+        if (user.Username != contract.Username && _repo.Find(contract.Username) != null) 
         {
-            return false;
+            throw new ResponseError(HttpStatusCode.Conflict, "User with spesific username already exist");
         }
 
         _repo.EditUser(
@@ -101,13 +102,13 @@ public class UserService : IUserService
             contract.ProfilePicture
         );
 
-        return true;
+        throw new ResponseOK("Success to edit profile");
     }
 
-    public User? GetUserProfile(string username) 
+    public void GetUserProfile(int id) 
     {
-        var user = _repo.Find(username);
+        var user = _repo.FindById(id);
 
-        return user;
+        throw new ResponseOK(user);
     }
 }

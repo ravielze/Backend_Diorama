@@ -1,6 +1,8 @@
+using System;
 using Microsoft.AspNetCore.Mvc;
 using Diorama.RestAPI.Services;
 using Diorama.Internals.Contract;
+using Diorama.Internals.Attributes;
 
 namespace Diorama.RestAPI.Controllers;
 
@@ -28,30 +30,20 @@ public class UserController : ControllerBase
     {
         _service.Register(contract);
     }
-}
 
-[ApiController]
-[Route("api/user")]
-public class UserProfileController : ControllerBase
-{
-    private readonly ILogger<UserProfileController> _logger;
-    private readonly IUserService _service;
-
-    public UserProfileController(ILogger<UserProfileController> logger, IUserService service)
+    [Authorize]
+    [HttpGet("")]
+    public void GetUserProfile()
     {
-        _logger = logger;
-        _service = service;
+        int userId = (int) HttpHelper.ContextItems["user_id"];
+        _service.GetUserProfile(userId);
     }
 
-    [HttpGet("{id}")]
-    public void Login(AuthContract contract)
+    [Authorize]
+    [HttpPut("edit")]
+    public void EditUserProfile(EditUserContract contract)
     {
-        _service.Authenticate(contract);
-    }
-
-    [HttpPut("register")]
-    public void Register(RegisterAuthContract contract)
-    {
-        _service.Register(contract);
+        int userId = (int) HttpHelper.ContextItems["user_id"];
+        _service.EditUserProfile(userId, contract);
     }
 }
