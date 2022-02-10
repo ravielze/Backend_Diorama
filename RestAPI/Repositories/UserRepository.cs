@@ -23,12 +23,12 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         dbRole = dbContext.UserRole;
     }
 
-    private void Create(User user, UserRole role)
+    private User Create(User user, UserRole role)
     {
-        dbContext.Entry(user.Role).State = EntityState.Unchanged;
         user.Role = role;
         db?.Add(user);
         Save();
+        return user;
     }
 
     public void EditUser(User user, string name, string username, string biography, string profilePicture) {
@@ -48,12 +48,12 @@ public class UserRepository : BaseRepository<User>, IUserRepository
             throw new Exception("user role not found");
         }
 
-        Create(user, normalUserRole);
+        return Create(user, normalUserRole);
     }
 
     public User? Find(string username)
     {
-        return db?.Where(x => x.Username == username).First<User>();
+        return db?.Where(x => x.Username == username).Include(x => x.Role).FirstOrDefault();
     }
 
     public void CreateAdmin(User user)
