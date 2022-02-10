@@ -82,32 +82,36 @@ public class UserService : IUserService
     }
 
     public void EditUserProfile(int id, EditUserContract contract)
-    {   
+    {
         var user = _repo.FindById(id);
-        if (user == null) 
+        if (user == null)
         {
             throw new ResponseError(HttpStatusCode.NotFound, "User with spesific ID not found");
         }
 
-        if (user.Username != contract.Username && _repo.Find(contract.Username) != null) 
+        if (user.Username != contract.Username && _repo.Find(contract.Username) != null)
         {
             throw new ResponseError(HttpStatusCode.Conflict, "User with spesific username already exist");
         }
 
         _repo.EditUser(
-            user, 
-            contract.Name, 
-            contract.Username, 
-            contract.Biography, 
+            user,
+            contract.Name,
+            contract.Username,
+            contract.Biography,
             contract.ProfilePicture
         );
 
         throw new ResponseOK("Success to edit profile");
     }
 
-    public void GetUserProfile(int id) 
+    public void GetUserProfile(int id)
     {
         var user = _repo.FindById(id);
+        if (user == null)
+        {
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+        }
 
         throw new ResponseOK(user);
     }

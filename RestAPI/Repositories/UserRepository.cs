@@ -10,7 +10,7 @@ public interface IUserRepository
     void EditUser(User user, string name, string username, string biography, string profilePicture);
     void CreateAdmin(User user);
     User? Find(string username);
-    User FindById(int id);
+    User? FindById(int id);
 }
 
 public class UserRepository : BaseRepository<User>, IUserRepository
@@ -32,7 +32,8 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         return user;
     }
 
-    public void EditUser(User user, string name, string username, string biography, string profilePicture) {
+    public void EditUser(User user, string name, string username, string biography, string profilePicture)
+    {
         user.Name = name;
         user.Username = username;
         user.Biography = biography;
@@ -57,9 +58,9 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         return db?.Where(x => x.Username == username).Include(x => x.Role).FirstOrDefault();
     }
 
-    public User FindById(int id)
+    public User? FindById(int id)
     {
-        return db.Where(x => x.ID == id).FirstOrDefault<User>();
+        return db?.Find(id);
     }
 
     public void CreateAdmin(User user)
