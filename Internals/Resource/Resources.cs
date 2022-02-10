@@ -1,4 +1,5 @@
 using Diorama.RestAPI;
+
 namespace Diorama.Internals.Resource;
 
 public class Resources : ILayer
