@@ -34,12 +34,14 @@ public class User : BaseEntity, IModel
         Name = contract.Name;
         Username = contract.Username;
         Password = hasher.Hash(contract.Password);
+        Role = null!;
     }
 
     public User(AuthContract contract, IHasher hasher)
     {
         Username = contract.Username;
         Password = hasher.Hash(contract.Password);
+        Role = null!;
     }
 
     public void Configure(ModelBuilder builder)
