@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Diorama", "API\Diorama.csproj", "{99DB5AFF-AAE8-4BAF-878A-BD10FFC0947E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test", "test\test.csproj", "{334C2E5D-BBAB-435B-BA6F-9E13EE0E947C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{99DB5AFF-AAE8-4BAF-878A-BD10FFC0947E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99DB5AFF-AAE8-4BAF-878A-BD10FFC0947E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99DB5AFF-AAE8-4BAF-878A-BD10FFC0947E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99DB5AFF-AAE8-4BAF-878A-BD10FFC0947E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{334C2E5D-BBAB-435B-BA6F-9E13EE0E947C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{334C2E5D-BBAB-435B-BA6F-9E13EE0E947C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{334C2E5D-BBAB-435B-BA6F-9E13EE0E947C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{334C2E5D-BBAB-435B-BA6F-9E13EE0E947C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
