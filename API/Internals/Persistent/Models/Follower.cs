@@ -14,6 +14,16 @@ public class Follower : IModel
     [ForeignKey("FollowObjectID")]
     public User FollowObject { get; set; } = new User();
 
+    public Follower() {}
+
+    public Follower(User followSubject, User followObject) {
+        FollowSubject = followSubject;
+        FollowSubjectID = followSubject.ID;
+
+        FollowObject = followObject;
+        FollowObjectID = followObject.ID;
+    }
+
     public void Configure(ModelBuilder builder)
     {
         builder.Entity<Follower>()
