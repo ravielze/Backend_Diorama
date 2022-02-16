@@ -46,4 +46,28 @@ public class UserController : ControllerBase
         int userId = (int)HttpHelper.ContextItems["user_id"];
         _service.EditUserProfile(userId, contract);
     }
+
+    [Authorize]
+    [HttpPost("{username}/follow")]
+    public void Follow(string username)
+    {
+        int userId = (int)HttpHelper.ContextItems["user_id"];
+        _service.Follow(userId, username);
+    }
+
+    [Authorize]
+    [HttpPost("{username}/unfollow")]
+    public void Unfollow(string username)
+    {
+        int userId = (int)HttpHelper.ContextItems["user_id"];
+        _service.Unfollow(userId, username);
+    }
+
+    [Authorize]
+    [HttpGet("{username}/is_following")]
+    public void IsFollowing(string username)
+    {
+        int userId = (int)HttpHelper.ContextItems["user_id"];
+        _service.isFollowing(userId, username);
+    }
 }

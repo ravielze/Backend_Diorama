@@ -2,6 +2,7 @@ using Diorama.Internals.Resource;
 using Diorama.Internals.Contract;
 using Diorama.RestAPI.Repositories;
 using Diorama.Internals.Responses;
+using Diorama.Internals.Persistent;
 using Diorama.Internals.Persistent.Models;
 using System.Net;
 using System.IdentityModel.Tokens.Jwt;
@@ -17,23 +18,30 @@ public interface IUserService
     void Register(RegisterAuthContract contract);
     void EditUserProfile(int id, EditUserContract contract);
     void GetUserProfile(int id);
+    void Follow(int id, string username);
+    void Unfollow(int id, string username);
+    void isFollowing(int userId, string username);
 }
 
 public class UserService : IUserService
 {
-
-    private IUserRepository _repo;
+    
+    private IUserRepository _userRepo;
+    private IFollowerRepository _followerRepo;
     private IHasher _hasher;
+    private Database _dbContext;
 
-    public UserService(IUserRepository repo, IHasher hasher)
+    public UserService(IUserRepository repo, IFollowerRepository followerRepo, IHasher hasher, Database dbContext)
     {
-        _repo = repo;
+        _dbContext = dbContext;
+        _userRepo = repo;
+        _followerRepo = followerRepo;
         _hasher = hasher;
     }
 
     public void Authenticate(AuthContract contract)
     {
-        var user = _repo.Find(contract.Username);
+        var user = _userRepo.Find(contract.Username);
         if (user == null)
         {
             throw new ResponseError(HttpStatusCode.NotFound, "Username not found.");
@@ -49,14 +57,14 @@ public class UserService : IUserService
 
     public void Register(RegisterAuthContract contract)
     {
-        var user = _repo.Find(contract.Username);
+        var user = _userRepo.Find(contract.Username);
         if (user != null)
         {
             throw new ResponseError(HttpStatusCode.NotFound, "Username is already registered.");
         }
 
         var registeredUser = new User(contract, _hasher);
-        user = _repo.CreateNormalUser(registeredUser);
+        user = _userRepo.CreateNormalUser(registeredUser);
         throw new ResponseOK(new UserContract(user));
     }
 
@@ -83,18 +91,18 @@ public class UserService : IUserService
 
     public void EditUserProfile(int id, EditUserContract contract)
     {
-        var user = _repo.FindById(id);
+        var user = _userRepo.FindById(id);
         if (user == null)
         {
             throw new ResponseError(HttpStatusCode.NotFound, "User with spesific ID not found");
         }
 
-        if (user.Username != contract.Username && _repo.Find(contract.Username) != null)
+        if (user.Username != contract.Username && _userRepo.Find(contract.Username) != null)
         {
             throw new ResponseError(HttpStatusCode.Conflict, "User with spesific username already exist");
         }
 
-        _repo.EditUser(
+        _userRepo.EditUser(
             user,
             contract.Name,
             contract.Username,
@@ -107,12 +115,87 @@ public class UserService : IUserService
 
     public void GetUserProfile(int id)
     {
-        var user = _repo.FindById(id);
+        var user = _userRepo.FindById(id);
         if (user == null)
         {
             throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
         }
 
-        throw new ResponseOK(user);
+        throw new ResponseOK(new UserContract(user));
+    }
+
+    public void Follow(int id, string username)
+    {   
+        var currentUser = _userRepo.FindById(id);
+        if (currentUser == null)
+        {
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+        }
+
+        var targetUser = _userRepo.Find(username);
+        if (targetUser == null)
+        {
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+        }
+
+        Follower newFollowerInstance = new Follower(currentUser, targetUser);
+        try {
+            _followerRepo.CreateFollower(newFollowerInstance);
+        } catch (Exception) {
+            throw new ResponseError(HttpStatusCode.Conflict, "Can't follow twice");
+        }
+
+        _userRepo.UpdateFollowersFollowingTotal(currentUser, targetUser, "follow");
+
+        throw new ResponseOK("Follow success");
+    }
+
+    public void Unfollow(int id, string username)
+    {   
+        var currentUser = _userRepo.FindById(id);
+        if (currentUser == null)
+        {
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+        }
+
+        var targetUser = _userRepo.Find(username);
+        if (targetUser == null)
+        {
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+        }
+
+        Follower newFollowerInstance = new Follower(currentUser, targetUser);
+        try {
+            _followerRepo.DeleteFollower(newFollowerInstance);
+        } catch (Exception) {
+            throw new ResponseError(HttpStatusCode.Conflict, "Can't unfollow twice");
+        }
+
+        _userRepo.UpdateFollowersFollowingTotal(currentUser, targetUser, "unfollow");
+
+        throw new ResponseOK("Unfollow success.");
+    }
+
+    public void isFollowing(int id, string username)
+    {
+        var currentUser = _userRepo.FindById(id);
+        if (currentUser == null)
+        {
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+        }
+
+        var targetUser = _userRepo.Find(username);
+        if (targetUser == null)
+        {
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+        }
+
+        var followerData = _followerRepo.Find(currentUser.ID, targetUser.ID);
+        bool isFollow = true;
+        if (followerData == null)
+        {
+            isFollow = false;
+        }
+        throw new ResponseOK(isFollow);
     }
 }
