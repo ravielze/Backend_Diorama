@@ -2,7 +2,6 @@ using Diorama.Internals.Resource;
 using Diorama.Internals.Contract;
 using Diorama.RestAPI.Repositories;
 using Diorama.Internals.Responses;
-using Diorama.Internals.Persistent;
 using Diorama.Internals.Persistent.Models;
 using System.Net;
 using System.IdentityModel.Tokens.Jwt;
@@ -25,15 +24,13 @@ public interface IUserService
 
 public class UserService : IUserService
 {
-    
+
     private IUserRepository _userRepo;
     private IFollowerRepository _followerRepo;
     private IHasher _hasher;
-    private Database _dbContext;
 
-    public UserService(IUserRepository repo, IFollowerRepository followerRepo, IHasher hasher, Database dbContext)
+    public UserService(IUserRepository repo, IFollowerRepository followerRepo, IHasher hasher)
     {
-        _dbContext = dbContext;
         _userRepo = repo;
         _followerRepo = followerRepo;
         _hasher = hasher;
@@ -49,7 +46,7 @@ public class UserService : IUserService
 
         if (!_hasher.Verify(contract.Password, user.Password))
         {
-            throw new ResponseError(HttpStatusCode.NotFound, "Invalid password.");
+            throw new ResponseError(HttpStatusCode.BadRequest, "Invalid password.");
         }
         var token = GenerateJWTToken(user);
         throw new ResponseOK(new UserAuthContract(user, token));
@@ -60,7 +57,7 @@ public class UserService : IUserService
         var user = _userRepo.Find(contract.Username);
         if (user != null)
         {
-            throw new ResponseError(HttpStatusCode.NotFound, "Username is already registered.");
+            throw new ResponseError(HttpStatusCode.BadRequest, "Username is already registered.");
         }
 
         var registeredUser = new User(contract, _hasher);
@@ -94,12 +91,12 @@ public class UserService : IUserService
         var user = _userRepo.FindById(id);
         if (user == null)
         {
-            throw new ResponseError(HttpStatusCode.NotFound, "User with spesific ID not found");
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
         }
 
         if (user.Username != contract.Username && _userRepo.Find(contract.Username) != null)
         {
-            throw new ResponseError(HttpStatusCode.Conflict, "User with spesific username already exist");
+            throw new ResponseError(HttpStatusCode.BadRequest, "User with spesific username already exist.");
         }
 
         _userRepo.EditUser(
@@ -110,7 +107,7 @@ public class UserService : IUserService
             contract.ProfilePicture
         );
 
-        throw new ResponseOK("Success to edit profile");
+        throw new ResponseOK("Success to edit profile.");
     }
 
     public void GetUserProfile(int id)
@@ -125,7 +122,7 @@ public class UserService : IUserService
     }
 
     public void Follow(int id, string username)
-    {   
+    {
         var currentUser = _userRepo.FindById(id);
         if (currentUser == null)
         {
@@ -135,14 +132,17 @@ public class UserService : IUserService
         var targetUser = _userRepo.Find(username);
         if (targetUser == null)
         {
-            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+            throw new ResponseError(HttpStatusCode.NotFound, "Username not found.");
         }
 
         Follower newFollowerInstance = new Follower(currentUser, targetUser);
-        try {
+        try
+        {
             _followerRepo.CreateFollower(newFollowerInstance);
-        } catch (Exception) {
-            throw new ResponseError(HttpStatusCode.Conflict, "Can't follow twice");
+        }
+        catch (Exception)
+        {
+            throw new ResponseError(HttpStatusCode.BadRequest, "Can't follow twice");
         }
 
         _userRepo.UpdateFollowersFollowingTotal(currentUser, targetUser, "follow");
@@ -151,7 +151,7 @@ public class UserService : IUserService
     }
 
     public void Unfollow(int id, string username)
-    {   
+    {
         var currentUser = _userRepo.FindById(id);
         if (currentUser == null)
         {
@@ -161,14 +161,17 @@ public class UserService : IUserService
         var targetUser = _userRepo.Find(username);
         if (targetUser == null)
         {
-            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+            throw new ResponseError(HttpStatusCode.NotFound, "Username not found.");
         }
 
         Follower newFollowerInstance = new Follower(currentUser, targetUser);
-        try {
+        try
+        {
             _followerRepo.DeleteFollower(newFollowerInstance);
-        } catch (Exception) {
-            throw new ResponseError(HttpStatusCode.Conflict, "Can't unfollow twice");
+        }
+        catch (Exception)
+        {
+            throw new ResponseError(HttpStatusCode.BadRequest, "Can't unfollow twice");
         }
 
         _userRepo.UpdateFollowersFollowingTotal(currentUser, targetUser, "unfollow");
@@ -187,7 +190,7 @@ public class UserService : IUserService
         var targetUser = _userRepo.Find(username);
         if (targetUser == null)
         {
-            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+            throw new ResponseError(HttpStatusCode.NotFound, "Username not found.");
         }
 
         var followerData = _followerRepo.Find(currentUser.ID, targetUser.ID);
