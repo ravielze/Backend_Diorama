@@ -7,19 +7,24 @@ using Xunit;
 
 namespace DioramaTest;
 
-public class MockWrappers {
+public class MockWrappers
+{
 
     public Mock<IUserRepository> UserRepo = new Mock<IUserRepository>();
+    public Mock<IFollowerRepository> FollowerRepo = new Mock<IFollowerRepository>();
     public Mock<IHasher> Hasher = new Mock<IHasher>();
 }
 
-public abstract class Tester {
+public abstract class Tester
+{
 
-    protected void IsOK(Action act) {
-        Assert.Throws<ResponseOK>(act);
+    protected ResponseOK IsOK(Action act)
+    {
+        return Assert.Throws<ResponseOK>(act);
     }
 
-    protected void IsError(Action act) {
-        Assert.Throws<ResponseError>(act);
+    protected ResponseError IsError(Action act)
+    {
+        return Assert.Throws<ResponseError>(act);
     }
 }
