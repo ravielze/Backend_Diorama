@@ -6,9 +6,10 @@ namespace Diorama.RestAPI.Repositories;
 
 public interface IUserRepository
 {
-    User CreateNormalUser(User user);
     void EditUser(User user, string name, string username, string biography, string profilePicture);
     void CreateAdmin(User user);
+    void UpdateFollowersFollowingTotal(User currentUser, User targetUser, string action);
+    User CreateNormalUser(User user);
     User? Find(string username);
     User? FindById(int id);
 }
@@ -60,7 +61,7 @@ public class UserRepository : BaseRepository<User>, IUserRepository
 
     public User? FindById(int id)
     {
-        return db?.Find(id);
+        return db?.Where(x => x.ID == id).Include(x => x.Role).FirstOrDefault();
     }
 
     public void CreateAdmin(User user)
@@ -72,5 +73,20 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         }
 
         Create(user, normalUserRole);
+    }
+
+    public void UpdateFollowersFollowingTotal(User currentUser, User targetUser, string action) {
+        int value;
+        if(action == "follow") {
+            value = 1;
+        } else {
+            value = -1;
+        }
+        
+        currentUser.Following += value;
+        Save();
+
+        targetUser.Followers += value;
+        Save();
     }
 }

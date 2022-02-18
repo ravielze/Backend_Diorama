@@ -15,6 +15,7 @@ public class Repositories : ILayer
     public void Build()
     {
         _services.AddScoped<IUserRepository, UserRepository>();
+        _services.AddScoped<IFollowerRepository, FollowerRepository>();
     }
 }
 

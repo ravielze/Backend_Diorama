@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Diorama.Internals.Persistent.Models;
+using System;
 
 namespace Diorama.Internals.Contract;
 
@@ -65,8 +66,8 @@ public class UserContract
         Biography = user.Biography;
         Role = user.Role.Name;
         ProfilePicture = user.ProfilePicture;
-        user.Following = user.Following;
-        user.Followers = user.Followers;
+        Following = user.Following;
+        Followers = user.Followers;
     }
 
 }
