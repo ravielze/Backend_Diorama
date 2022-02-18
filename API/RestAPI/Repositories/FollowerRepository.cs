@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Diorama.RestAPI.Repositories;
 
-public interface IFollowerRepository {
+public interface IFollowerRepository
+{
     void CreateFollower(Follower data);
     void DeleteFollower(Follower data);
     Follower? Find(int subjectId, int objectId);
@@ -13,7 +14,7 @@ public interface IFollowerRepository {
 public class FollowerRepository : BaseRepository<Follower>, IFollowerRepository
 {
 
-    public FollowerRepository(Database dbContext) : base(dbContext, dbContext.Follower) {}
+    public FollowerRepository(Database dbContext) : base(dbContext, dbContext.Follower) { }
 
     public void CreateFollower(Follower follower)
     {
@@ -31,6 +32,7 @@ public class FollowerRepository : BaseRepository<Follower>, IFollowerRepository
     {
         return db?
             .Where(x => x.FollowSubjectID == subjectId && x.FollowObjectID == objectId)
+            .Include(x => x.FollowObject).Include(x => x.FollowSubject)
             .FirstOrDefault();
     }
 }
