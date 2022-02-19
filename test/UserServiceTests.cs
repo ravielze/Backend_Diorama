@@ -240,4 +240,296 @@ public class UserServiceTests : Tester
         string actualResponse = JsonSerializer.Serialize(details);
         Assert.Equal(expectedResponse, actualResponse);
     }
+
+    [Fact]
+    public void Follow_When_Subject_User_Not_Found()
+    {
+        int mockUserSubjectId = 1;
+        string mockUserTargetUsername = "dummy";
+        
+        var _service = Setup((mw) =>
+        {
+            mw.UserRepo.Setup(p => p.FindById(It.IsAny<int>())).Returns<User?>(null);
+        });
+
+        ResponseError response = IsError(() =>
+        {
+            _service.Follow(mockUserSubjectId, mockUserTargetUsername);
+        });
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.IsAssignableFrom<string>(response.Details);
+        Assert.Equal("Data inconsistent.", response.Details);
+    }
+
+    [Fact]
+    public void Follow_When_Target_User_Not_Found()
+    {
+        User mockSubjectUser = new User();
+        int mockUserSubjectId = 1;
+        string mockUserTargetUsername = "dummy";
+        
+        var _service = Setup((mw) =>
+        {
+            mw.UserRepo.Setup(p => p.FindById(It.IsAny<int>())).Returns(mockSubjectUser);
+            mw.UserRepo.Setup(p => p.Find(It.IsAny<string>())).Returns<User?>(null);
+        });
+
+        ResponseError response = IsError(() =>
+        {
+            _service.Follow(mockUserSubjectId, mockUserTargetUsername);
+        });
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.IsAssignableFrom<string>(response.Details);
+        Assert.Equal("Username not found.", response.Details);
+    }
+
+    [Fact]
+    public void Follow_When_Follow_Twice()
+    {
+        User mockSubjectUser = new User();
+        int mockUserSubjectId = 1;
+
+        User mockTargetUser = new User();
+        string mockUserTargetUsername = "dummy";
+        
+        var _service = Setup((mw) =>
+        {
+            mw.UserRepo.Setup(p => p.FindById(It.IsAny<int>())).Returns(mockSubjectUser);
+            mw.UserRepo.Setup(p => p.Find(It.IsAny<string>())).Returns(mockTargetUser);
+            mw.FollowerRepo
+                .Setup(p => p.CreateFollower(It.IsAny<Follower>()))
+                .Callback((Follower mockFollowerInstance) => {
+                    throw new ArgumentException("Failed create instance follower");
+                });
+        });
+
+        ResponseError response = IsError(() =>
+        {
+            _service.Follow(mockUserSubjectId, mockUserTargetUsername);
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.IsAssignableFrom<string>(response.Details);
+        Assert.Equal("Can't follow twice", response.Details);
+    }
+
+    [Fact]
+    public void Follow_When_Successful()
+    {
+        User mockSubjectUser = new User();
+        int mockUserSubjectId = 1;
+
+        User mockTargetUser = new User();
+        string mockUserTargetUsername = "dummy";
+        
+        var _service = Setup((mw) =>
+        {
+            mw.UserRepo.Setup(p => p.FindById(It.IsAny<int>())).Returns(mockSubjectUser);
+            mw.UserRepo.Setup(p => p.Find(It.IsAny<string>())).Returns(mockTargetUser);
+            mw.FollowerRepo
+                .Setup(p => p.CreateFollower(It.IsAny<Follower>()))
+                .Verifiable();
+            mw.UserRepo
+                .Setup(p => 
+                    p.UpdateFollowersFollowingTotal(
+                        It.IsAny<User>(), 
+                        It.IsAny<User>(), 
+                        "follow"
+                    )
+                )
+                .Verifiable();
+        });
+
+        ResponseOK response = IsOK(() =>
+        {
+            _service.Follow(mockUserSubjectId, mockUserTargetUsername);
+        });
+
+        Assert.IsAssignableFrom<string>(response.Details);
+        Assert.Equal("Follow success", response.Details);
+    }
+
+    [Fact]
+    public void Unfollow_When_Subject_User_Not_Found()
+    {
+        int mockUserSubjectId = 1;
+        string mockUserTargetUsername = "dummy";
+        
+        var _service = Setup((mw) =>
+        {
+            mw.UserRepo.Setup(p => p.FindById(It.IsAny<int>())).Returns<User?>(null);
+        });
+
+        ResponseError response = IsError(() =>
+        {
+            _service.Unfollow(mockUserSubjectId, mockUserTargetUsername);
+        });
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.IsAssignableFrom<string>(response.Details);
+        Assert.Equal("Data inconsistent.", response.Details);
+    }
+
+    [Fact]
+    public void Unfollow_When_Target_User_Not_Found()
+    {
+        User mockSubjectUser = new User();
+        int mockUserSubjectId = 1;
+        string mockUserTargetUsername = "dummy";
+        
+        var _service = Setup((mw) =>
+        {
+            mw.UserRepo.Setup(p => p.FindById(It.IsAny<int>())).Returns(mockSubjectUser);
+            mw.UserRepo.Setup(p => p.Find(It.IsAny<string>())).Returns<User?>(null);
+        });
+
+        ResponseError response = IsError(() =>
+        {
+            _service.Unfollow(mockUserSubjectId, mockUserTargetUsername);
+        });
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.IsAssignableFrom<string>(response.Details);
+        Assert.Equal("Username not found.", response.Details);
+    }
+
+    [Fact]
+    public void Unfollow_When_Follow_Twice()
+    {
+        User mockSubjectUser = new User();
+        int mockUserSubjectId = 1;
+
+        User mockTargetUser = new User();
+        string mockUserTargetUsername = "dummy";
+        
+        var _service = Setup((mw) =>
+        {
+            mw.UserRepo.Setup(p => p.FindById(It.IsAny<int>())).Returns(mockSubjectUser);
+            mw.UserRepo.Setup(p => p.Find(It.IsAny<string>())).Returns(mockTargetUser);
+            mw.FollowerRepo
+                .Setup(p => p.DeleteFollower(It.IsAny<Follower>()))
+                .Callback((Follower mockFollowerInstance) => {
+                    throw new ArgumentException("Failed remove instance follower");
+                });
+        });
+
+        ResponseError response = IsError(() =>
+        {
+            _service.Unfollow(mockUserSubjectId, mockUserTargetUsername);
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.IsAssignableFrom<string>(response.Details);
+        Assert.Equal("Can't unfollow twice", response.Details);
+    }
+
+    [Fact]
+    public void Unfollow_When_Successful()
+    {
+        User mockSubjectUser = new User();
+        int mockUserSubjectId = 1;
+
+        User mockTargetUser = new User();
+        string mockUserTargetUsername = "dummy";
+        
+        // Follower mockFollowerInstance = new Follower(mockSubjectUser, mockTargetUser);
+        var _service = Setup((mw) =>
+        {
+            mw.UserRepo.Setup(p => p.FindById(It.IsAny<int>())).Returns(mockSubjectUser);
+            mw.UserRepo.Setup(p => p.Find(It.IsAny<string>())).Returns(mockTargetUser);
+            mw.FollowerRepo
+                .Setup(p => p.DeleteFollower(It.IsAny<Follower>()))
+                .Verifiable();
+            mw.UserRepo
+                .Setup(p => 
+                    p.UpdateFollowersFollowingTotal(
+                        It.IsAny<User>(), 
+                        It.IsAny<User>(), 
+                        It.IsAny<string>()
+                    )
+                )
+                .Verifiable();
+        });
+
+        ResponseOK response = IsOK(() =>
+        {
+            _service.Unfollow(mockUserSubjectId, mockUserTargetUsername);
+        });
+
+        Assert.IsAssignableFrom<string>(response.Details);
+        Assert.Equal("Unfollow success.", response.Details);
+    }
+
+    [Fact]
+    public void IsFollowing_When_Subject_User_Not_Found()
+    {
+        int mockUserSubjectId = 1;
+        string mockUserTargetUsername = "dummy";
+        
+        var _service = Setup((mw) =>
+        {
+            mw.UserRepo.Setup(p => p.FindById(It.IsAny<int>())).Returns<User?>(null);
+        });
+
+        ResponseError response = IsError(() =>
+        {
+            _service.isFollowing(mockUserSubjectId, mockUserTargetUsername);
+        });
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.IsAssignableFrom<string>(response.Details);
+        Assert.Equal("Data inconsistent.", response.Details);
+    }
+
+    [Fact]
+    public void IsFollowing_When_Target_User_Not_Found()
+    {
+        User mockSubjectUser = new User();
+        int mockUserSubjectId = 1;
+        string mockUserTargetUsername = "dummy";
+        
+        var _service = Setup((mw) =>
+        {
+            mw.UserRepo.Setup(p => p.FindById(It.IsAny<int>())).Returns(mockSubjectUser);
+            mw.UserRepo.Setup(p => p.Find(It.IsAny<string>())).Returns<User?>(null);
+        });
+
+        ResponseError response = IsError(() =>
+        {
+            _service.isFollowing(mockUserSubjectId, mockUserTargetUsername);
+        });
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.IsAssignableFrom<string>(response.Details);
+        Assert.Equal("Username not found.", response.Details);
+    }
+
+    [Fact]
+    public void IsFollowing_When_Successful()
+    {
+        User mockSubjectUser = new User();
+        int mockUserSubjectId = 1;
+
+        User mockTargetUser = new User();
+        string mockUserTargetUsername = "dummy";
+        
+        var _service = Setup((mw) =>
+        {
+            mw.UserRepo.Setup(p => p.FindById(It.IsAny<int>())).Returns(mockSubjectUser);
+            mw.UserRepo.Setup(p => p.Find(It.IsAny<string>())).Returns(mockTargetUser);
+            mw.FollowerRepo
+                .Setup(p => p.Find(It.IsAny<int>(), It.IsAny<int>()))
+                .Returns<User?>(null);
+        });
+
+        ResponseOK response = IsOK(() =>
+        {
+            _service.isFollowing(mockUserSubjectId, mockUserTargetUsername);
+        });
+
+        Assert.IsAssignableFrom<bool>(response.Details);
+        Assert.Equal(false, response.Details);
+    }
 }
