@@ -31,4 +31,5 @@ public partial class Database : DbContext
     public DbSet<UserRole>? UserRole { get; set; }
     public DbSet<Post>? Post { get; set; }
     public DbSet<Follower>? Follower { get; set; }
+    public DbSet<PostLike>? PostLike { get; set; }
 }

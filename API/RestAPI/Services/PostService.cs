@@ -10,6 +10,10 @@ public interface IPostService
 {
     void CreatePost(int userId, CreatePostContract contract);
     void GetPostForHomePage(int userId, int page);
+    void GetPostForExplorePage(int userId, int page);
+    void GetSpesificPost(int userId, int pageId);
+    void LikePost(int userId, int pageId);
+    void UnlikePost(int userId, int pageId);
 }
 
 public class PostService : IPostService
@@ -54,5 +58,101 @@ public class PostService : IPostService
         }
 
         throw new ResponseOK(new PostsContract(posts, page, maxPage));
+    }
+
+    public void GetPostForExplorePage(int userId, int p)
+    {
+        User? user = _userRepo.FindById(userId);
+        if (user == null)
+        {
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+        }
+
+        (var posts, var page, var maxPage) = _repo.GetNewestExplore(p);
+        if (maxPage == 0)
+        {
+            throw new ResponseOK(new PostsContract(posts, 1, 1));
+        }
+        else if (page > maxPage)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Page not found.");
+        }
+
+        throw new ResponseOK(new PostsContract(posts, page, maxPage));
+    }
+    
+    public void GetSpesificPost(int userId, int pageId)
+    {
+        User? user = _userRepo.FindById(userId);
+        if (user == null)
+        {
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+        }
+
+        Post? post = _repo.FindById(pageId);
+        if (post == null)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
+        }
+
+        throw new ResponseOK(new PostContract(post));
+    }
+
+    public void LikePost(int userId, int pageId)
+    {
+        User? user = _userRepo.FindById(userId);
+        if (user == null)
+        {
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+        }
+
+        Post? post = _repo.FindById(pageId);
+        if (post == null)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
+        }
+
+        PostLike newPostLikeInstance = new PostLike(user, post);
+        try
+        {
+            _repo.Create(newPostLikeInstance);
+        }
+        catch (Exception)
+        {
+            throw new ResponseError(HttpStatusCode.BadRequest, "Can't like twice");
+        }
+
+        _repo.UpdateLike(post, "like");
+
+        throw new ResponseOK("Like Success");
+    }
+
+    public void UnlikePost(int userId, int pageId)
+    {
+        User? user = _userRepo.FindById(userId);
+        if (user == null)
+        {
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+        }
+
+        Post? post = _repo.FindById(pageId);
+        if (post == null)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
+        }
+
+        PostLike newPostLikeInstance = new PostLike(user, post);
+        try
+        {
+            _repo.Delete(newPostLikeInstance);
+        }
+        catch (Exception)
+        {
+            throw new ResponseError(HttpStatusCode.BadRequest, "Can't unlike twice");
+        }
+
+        _repo.UpdateLike(post, "unlike");
+
+        throw new ResponseOK("Unlike Success");
     }
 }

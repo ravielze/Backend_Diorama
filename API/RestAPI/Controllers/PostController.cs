@@ -26,11 +26,42 @@ public class PostController : ControllerBase
     }
 
     [Authorize]
+    [HttpGet("explore")]
+    public void GetExplorePage([FromQuery(Name = "page")] int page = 1)
+    {
+        int userId = (int)HttpHelper.ContextItems["user_id"];
+        _service.GetPostForExplorePage(userId, page);
+    }
+
+    [Authorize]
+    [HttpPost("{pageId}/like")]
+    public void LikePost(int pageId)
+    {
+        int userId = (int)HttpHelper.ContextItems["user_id"];
+        _service.LikePost(userId, pageId);
+    }
+
+    [Authorize]
+    [HttpPost("{pageId}/unlike")]
+    public void UnlikePost(int pageId)
+    {
+        int userId = (int)HttpHelper.ContextItems["user_id"];
+        _service.UnlikePost(userId, pageId);
+    }
+
+    [Authorize]
+    [HttpGet("{pageId}")]
+    public void GetSpesificPost(int pageId)
+    {
+        int userId = (int)HttpHelper.ContextItems["user_id"];
+        _service.GetSpesificPost(userId, pageId);
+    }
+
+    [Authorize]
     [HttpPost("")]
     public void CreatePost(CreatePostContract contract)
     {
         int userId = (int)HttpHelper.ContextItems["user_id"];
         _service.CreatePost(userId, contract);
     }
-
 }
