@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using Diorama.Internals.Persistent.Models;
-using System;
 
 namespace Diorama.Internals.Contract;
 
@@ -20,7 +19,7 @@ public class AuthContract
 
 }
 
-public class EditUserContract 
+public class EditUserContract
 {
     [Required]
     [MinLength(4)]
