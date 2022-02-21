@@ -17,6 +17,20 @@ public class CreatePostContract
 
 }
 
+public class PostsContract
+{
+    public int Page { get; set; } = 1;
+    public int MaxPage { get; set; } = 1;
+    public IEnumerable<PostContract> Posts;
+
+    public PostsContract(IEnumerable<Post> posts, int page, int maxPage)
+    {
+        Posts = posts.Select<Post, PostContract>(x => new PostContract(x));
+        Page = page;
+        MaxPage = maxPage;
+    }
+}
+
 public class PostContract
 {
     public int ID { get; set; } = 0;
@@ -32,10 +46,5 @@ public class PostContract
         Caption = post.Caption;
         Image = post.Image;
         Likes = post.Likes;
-    }
-
-    public static IEnumerable<PostContract> Transform(IEnumerable<Post> posts)
-    {
-        return posts.Select<Post, PostContract>(p => new PostContract(p));
     }
 }

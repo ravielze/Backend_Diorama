@@ -1,4 +1,3 @@
-using System;
 using Microsoft.AspNetCore.Mvc;
 using Diorama.RestAPI.Services;
 using Diorama.Internals.Contract;

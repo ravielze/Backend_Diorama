@@ -6,8 +6,8 @@ namespace Diorama.RestAPI.Repositories;
 
 public interface IPostRepository
 {
-    Post Create(int userId, Post post);
-    (IEnumerable<Post>, int) GetNewest(int requesterId, int page);
+    Post Create(Post post);
+    (IEnumerable<Post>, int, int) GetNewest(int requesterId, int page);
 }
 
 public class PostRepository : BaseRepository<Post>, IPostRepository
@@ -17,21 +17,14 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
     {
     }
 
-    public Post Create(int userId, Post post)
+    public Post Create(Post post)
     {
-        User? user = dbContext.User!.Find(userId);
-        if (user == null)
-        {
-            throw new Exception("user not found");
-        }
-
-        post.Author = user;
         db!.Add(post);
         Save();
         return post;
     }
 
-    public (IEnumerable<Post>, int) GetNewest(int requesterId, int page)
+    public (IEnumerable<Post>, int, int) GetNewest(int requesterId, int page)
     {
         if (page < 1)
         {
@@ -54,6 +47,6 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
             OrderBy(e => EF.Property<DateTime>(e, "CreatedAt")).
             Take(20).
             Skip(offset).
-            ToList(), maxPage);
+            ToList(), page, maxPage);
     }
 }
