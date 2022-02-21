@@ -12,5 +12,6 @@ public class Services : ILayer
     public void Build()
     {
         _services.AddScoped<IUserService, UserService>();
+        _services.AddScoped<IPostService, PostService>();
     }
 }
