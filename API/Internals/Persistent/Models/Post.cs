@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using Diorama.Internals.Contract;
 
 namespace Diorama.Internals.Persistent.Models;
 
@@ -15,6 +16,16 @@ public class Post : BaseEntitySoftDelete, IModel
     public int Likes { get; set; } = 0;
     public IList<Comment> Comments { get; } = new List<Comment>();
     public IList<PostCategory> Categories { get; } = new List<PostCategory>();
+
+    public Post() { }
+
+    public Post(User author, CreatePostContract contract)
+    {
+        Author = author;
+        AuthorID = author.ID;
+        Caption = contract.Caption;
+        Image = contract.Image;
+    }
 
     public void Configure(ModelBuilder builder)
     {

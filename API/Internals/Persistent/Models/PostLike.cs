@@ -9,6 +9,16 @@ public class PostLike : IModel
     public int PostID { get; set; } = 0;
     public Post Post { get; set; } = new Post();
 
+    public PostLike() {}
+
+    public PostLike(User user, Post post) {
+        User = user;
+        UserID = user.ID;
+
+        Post = post;
+        PostID = post.ID;
+    }
+
     public void Configure(ModelBuilder builder)
     {
         builder.Entity<PostLike>()
