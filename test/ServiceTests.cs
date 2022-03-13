@@ -9,7 +9,7 @@ namespace DioramaTest;
 
 public class MockWrappers
 {
-
+    public Mock<IPostRepository> PostRepo = new Mock<IPostRepository>();
     public Mock<IUserRepository> UserRepo = new Mock<IUserRepository>();
     public Mock<IFollowerRepository> FollowerRepo = new Mock<IFollowerRepository>();
     public Mock<IHasher> Hasher = new Mock<IHasher>();

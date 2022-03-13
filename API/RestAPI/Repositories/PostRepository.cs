@@ -1,4 +1,7 @@
+using System;
+using System.Collections;
 using Diorama.Internals.Persistent;
+using Diorama.Internals.Contract;
 using Diorama.Internals.Persistent.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -66,24 +69,34 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
         {
             page = 1;
         }
+
         int offset = 20 * (page - 1);
-        IEnumerable<int> following = dbContext.Follower!.
-                                        Where(p => p.FollowSubjectID == requesterId).ToList().
-                                        Select<Follower, int>(p => p.FollowObjectID);
-        double count = db!.Count();
+
+        IEnumerable<int> following = dbContext
+            .Follower!
+            .Where(p => p.FollowSubjectID == requesterId)
+            .ToList()
+            .Select<Follower, int>(p => p.FollowObjectID);
+
         int maxPage = 0;
+        double count = db!.Count();
         if (count > 0)
         {
             maxPage = (int)Math.Ceiling(count / 20);
         }
-        return (db!.
-            TemporalAll().
-            Include(p => p.Author).
-            Where(p => following.Contains(p.AuthorID)).
-            OrderBy(e => EF.Property<DateTime>(e, "CreatedAt")).
-            Take(20).
-            Skip(offset).
-            ToList(), page, maxPage);
+
+        return(
+            db!
+                .TemporalAll()
+                .Include(p => p.Author)
+                .Where(p => following.Contains(p.AuthorID))
+                .OrderBy(e => EF.Property<DateTime>(e, "CreatedAt"))
+                .Take(20)
+                .Skip(offset)
+                .ToList(),
+            page,
+            maxPage
+        );
     }
 
     public (IEnumerable<Post>, int, int) GetNewestExplore(int page)
