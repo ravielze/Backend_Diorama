@@ -49,7 +49,7 @@ public class PostService : IPostService
             throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
         }
 
-        (var posts, var page, var maxPage) = _repo.GetNewest(user.ID, p);
+        (var posts, var page, var maxPage) = _repo.GetNewest(user!.ID, p);
         if (maxPage == 0)
         {
             throw new ResponseOK(new PostsContract(posts, 1, 1));
