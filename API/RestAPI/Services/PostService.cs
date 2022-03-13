@@ -1,8 +1,10 @@
+using System;
+using System.Net;
+using System.Collections;
 using Diorama.RestAPI.Repositories;
 using Diorama.Internals.Contract;
 using Diorama.Internals.Responses;
 using Diorama.Internals.Persistent.Models;
-using System.Net;
 
 namespace Diorama.RestAPI.Services;
 
@@ -47,7 +49,7 @@ public class PostService : IPostService
             throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
         }
 
-        (var posts, var page, var maxPage) = _repo.GetNewest(user!.ID, p);
+        (var posts, var page, var maxPage) = _repo.GetNewest(user.ID, p);
         if (maxPage == 0)
         {
             throw new ResponseOK(new PostsContract(posts, 1, 1));

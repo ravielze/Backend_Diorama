@@ -21,7 +21,13 @@ public class UserServiceTests : Tester
     {
         MockWrappers _mw = new MockWrappers();
         config.Invoke(_mw);
-        IUserService _service = new UserService(_mw.UserRepo.Object, _mw.FollowerRepo.Object, _mw.Hasher.Object);
+        
+        IUserService _service = new UserService(
+            _mw.UserRepo.Object, 
+            _mw.FollowerRepo.Object, 
+            _mw.Hasher.Object
+        );
+
         return _service;
     }
 
@@ -60,6 +66,7 @@ public class UserServiceTests : Tester
                 new AuthContract()
             );
         });
+        
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.IsAssignableFrom<string>(response.Details);
         Assert.Equal("Invalid password.", response.Details);
