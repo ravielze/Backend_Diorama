@@ -64,4 +64,20 @@ public class PostController : ControllerBase
         int userId = (int)HttpHelper.ContextItems["user_id"];
         _service.CreatePost(userId, contract);
     }
+
+    [Authorize]
+    [HttpDelete("{postId}")]
+    public void DeletePost(int postId)
+    {
+        int userId = (int)HttpHelper.ContextItems["user_id"];
+        _service.DeletePost(userId, postId);
+    }
+
+    [Authorize]
+    [HttpPatch("")]
+    public void EditPost(EditPostContract contract)
+    {
+        int userId = (int)HttpHelper.ContextItems["user_id"];
+        _service.EditPost(userId, contract);
+    }
 }

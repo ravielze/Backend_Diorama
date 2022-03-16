@@ -16,6 +16,10 @@ public interface IPostService
     void GetSpesificPost(int userId, int pageId);
     void LikePost(int userId, int pageId);
     void UnlikePost(int userId, int pageId);
+
+    void DeletePost(int userId, int postId);
+
+    void EditPost(int userId, EditPostContract contract);
 }
 
 public class PostService : IPostService
@@ -156,5 +160,39 @@ public class PostService : IPostService
         _repo.UpdateLike(post, "unlike");
 
         throw new ResponseOK("Unlike Success");
+    }
+
+    public void DeletePost(int userId, int postId)
+    {
+        Post? post = _repo.FindById(postId);
+        if (post == null)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
+        }
+
+        if (post.AuthorID != userId) {
+            throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
+        }
+
+        _repo.DeletePost(post);
+
+        throw new ResponseOK("Delete Success");
+    }
+
+    public void EditPost(int userId, EditPostContract contract)
+    {
+        Post? post = _repo.FindById(contract.ID);
+        if (post == null)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
+        }
+
+        if (post.AuthorID != userId) {
+            throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
+        }
+
+        _repo.UpdatePost(post, contract.Caption);
+
+        throw new ResponseOK("Edit Success");
     }
 }
