@@ -16,6 +16,9 @@ public interface IPostRepository
     void UpdateLike(Post post, string action);
     (IEnumerable<Post>, int, int) GetNewest(int requesterId, int page);
     (IEnumerable<Post>, int, int) GetNewestExplore(int page);
+
+    void UpdatePost(Post post, String caption);
+    void DeletePost(Post post);
 }
 
 public class PostRepository : BaseRepository<Post>, IPostRepository
@@ -61,6 +64,16 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
     public Post? FindById(int id)
     {
         return db?.Where(x => x.ID == id).Include(p => p.Author).FirstOrDefault();
+    }
+
+    public void DeletePost(Post post){
+        db?.Remove(post);
+        Save();
+    }
+
+    public void UpdatePost(Post post, String caption) {
+        post.Caption = caption;
+        Save();
     }
 
     public (IEnumerable<Post>, int, int) GetNewest(int requesterId, int page)
