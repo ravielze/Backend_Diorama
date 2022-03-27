@@ -1,3 +1,4 @@
+using Diorama.Internals.Contract;
 using Microsoft.EntityFrameworkCore;
 
 namespace Diorama.Internals.Persistent.Models;
@@ -23,6 +24,15 @@ public class Category : IModel
             }
             return result;
         }
+    }
+
+    public Category()
+    {
+    }
+
+    public Category(string name)
+    {
+        Name = name;
     }
 
     public void Configure(ModelBuilder builder)

@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Collections;
+using System.Text.RegularExpressions;
 using Diorama.RestAPI.Repositories;
 using Diorama.Internals.Contract;
 using Diorama.Internals.Responses;
@@ -10,28 +11,27 @@ namespace Diorama.RestAPI.Services;
 
 public interface IPostService
 {
-    void CreatePost(int userId, CreatePostContract contract);
-    void GetPostForHomePage(int userId, int page);
-    void GetPostForExplorePage(int userId, int page);
-    void GetSpesificPost(int userId, int pageId);
     void LikePost(int userId, int pageId);
     void UnlikePost(int userId, int pageId);
-
     void DeletePost(int userId, int postId);
-
+    void GetSpesificPost(int userId, int pageId);
+    void GetPostForHomePage(int userId, int page);
+    void GetPostForExplorePage(int userId, int page);
     void EditPost(int userId, EditPostContract contract);
+    void CreatePost(int userId, CreatePostContract contract);
 }
 
 public class PostService : IPostService
 {
-
     private IPostRepository _repo;
     private IUserRepository _userRepo;
+    private ICategoryRepository _categoryRepo;
 
-    public PostService(IPostRepository repo, IUserRepository userRepo)
+    public PostService(IPostRepository repo, IUserRepository userRepo, ICategoryRepository categoryRepo)
     {
         _repo = repo;
         _userRepo = userRepo;
+        _categoryRepo = categoryRepo;
     }
 
     public void CreatePost(int userId, CreatePostContract contract)
@@ -41,7 +41,28 @@ public class PostService : IPostService
         {
             throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
         }
-        _repo.Create(new Post(user, contract));
+        
+        Post post = _repo.Create(new Post(user, contract));
+
+        string caption = contract.Caption;
+        string pattern = @"#(\w+)";
+
+        Regex regex = new Regex(pattern); 
+        MatchCollection result = regex.Matches(caption); 
+
+        for (int i = 0; i < result.Count; i++)
+        {
+            string categoryName = result[i].Value.Remove(0,1).ToLower();
+
+            Category? category = _categoryRepo.FindByName(categoryName);
+            if (category == null)
+            {
+                category = _categoryRepo.Create(new Category(categoryName));
+            }
+
+            _repo.Create(new PostCategory(post, category));
+        }
+
         throw new ResponseOK("Post created.");
     }
 
@@ -192,6 +213,22 @@ public class PostService : IPostService
         }
 
         _repo.UpdatePost(post, contract.Caption);
+
+        // // Hapus semua table post category dengan post id yang sama.
+        // _repo.RemoveAllHashtag();
+
+        // string caption = contract.Caption;
+        // string pattern = @"#(\w+)";
+
+        // Regex regex = new Regex(pattern); 
+        // MatchCollection result = regex.Matches(caption);
+
+        // for (int i = 0; i < result.Count; i++)
+        // {
+        //     string category = result[i].Value.Remove(0,1);
+        //     int categoryId = _repo.IdempotenceCreate(category);
+        //     _repo.Create(new PostCategory(categoryId, post.ID));
+        // }
 
         throw new ResponseOK("Edit Success");
     }

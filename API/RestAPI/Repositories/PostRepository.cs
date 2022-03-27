@@ -10,15 +10,20 @@ namespace Diorama.RestAPI.Repositories;
 public interface IPostRepository
 {
     Post Create(Post post);
-    Post? FindById(int id);
-    void Delete(PostLike postLike);
-    PostLike Create(PostLike postLike);
-    void UpdateLike(Post post, string action);
-    (IEnumerable<Post>, int, int) GetNewest(int requesterId, int page);
-    (IEnumerable<Post>, int, int) GetNewestExplore(int page);
 
-    void UpdatePost(Post post, String caption);
+    Post? FindById(int id);
+
+    PostLike Create(PostLike postLike);
+
+    PostCategory Create(PostCategory postCategory);
+
+    (IEnumerable<Post>, int, int) GetNewestExplore(int page);
+    (IEnumerable<Post>, int, int) GetNewest(int requesterId, int page);
+
     void DeletePost(Post post);
+    void Delete(PostLike postLike);
+    void UpdateLike(Post post, string action);
+    void UpdatePost(Post post, String caption);
 }
 
 public class PostRepository : BaseRepository<Post>, IPostRepository
@@ -26,6 +31,13 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
 
     public PostRepository(Database dbContext) : base(dbContext, dbContext.Post)
     {
+    }
+
+    public PostCategory Create(PostCategory postCategory)
+    {
+        dbContext.PostCategory!.Add(postCategory);
+        Save();
+        return postCategory;        
     }
 
     public PostLike Create(PostLike postLike)

@@ -17,6 +17,7 @@ public class Repositories : ILayer
         _services.AddScoped<IUserRepository, UserRepository>();
         _services.AddScoped<IFollowerRepository, FollowerRepository>();
         _services.AddScoped<IPostRepository, PostRepository>();
+        _services.AddScoped<ICategoryRepository, CategoryRepository>();
     }
 }
 
