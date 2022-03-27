@@ -79,11 +79,21 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
     }
 
     public void DeletePost(Post post){
+        IEnumerable<PostCategory> postCategoryList = dbContext
+            .PostCategory!
+            .Where(p => p.PostID == post.ID)
+            .ToList();
+        dbContext.PostCategory!.RemoveRange(postCategoryList);
         db?.Remove(post);
         Save();
     }
 
     public void UpdatePost(Post post, String caption) {
+        IEnumerable<PostCategory> postCategoryList = dbContext
+            .PostCategory!
+            .Where(p => p.PostID == post.ID)
+            .ToList();
+        dbContext.PostCategory!.RemoveRange(postCategoryList);
         post.Caption = caption;
         Save();
     }
@@ -140,12 +150,16 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
             maxPage = (int)Math.Ceiling(count / 20);
         }
 
-        return (db!.
-            TemporalAll().
-            Include(p => p.Author).
-            OrderBy(e => EF.Property<DateTime>(e, "CreatedAt")).
-            Take(20).
-            Skip(offset).
-            ToList(), page, maxPage);
+        return (
+            db!
+                .TemporalAll()
+                .Include(p => p.Author)
+                .OrderBy(e => EF.Property<DateTime>(e, "CreatedAt"))
+                .Take(20)
+                .Skip(offset)
+                .ToList(), 
+            page, 
+            maxPage
+        );
     }
 }

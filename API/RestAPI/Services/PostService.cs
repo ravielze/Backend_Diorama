@@ -214,21 +214,24 @@ public class PostService : IPostService
 
         _repo.UpdatePost(post, contract.Caption);
 
-        // // Hapus semua table post category dengan post id yang sama.
-        // _repo.RemoveAllHashtag();
+        string caption = contract.Caption;
+        string pattern = @"#(\w+)";
 
-        // string caption = contract.Caption;
-        // string pattern = @"#(\w+)";
+        Regex regex = new Regex(pattern); 
+        MatchCollection result = regex.Matches(caption); 
 
-        // Regex regex = new Regex(pattern); 
-        // MatchCollection result = regex.Matches(caption);
+        for (int i = 0; i < result.Count; i++)
+        {
+            string categoryName = result[i].Value.Remove(0,1).ToLower();
 
-        // for (int i = 0; i < result.Count; i++)
-        // {
-        //     string category = result[i].Value.Remove(0,1);
-        //     int categoryId = _repo.IdempotenceCreate(category);
-        //     _repo.Create(new PostCategory(categoryId, post.ID));
-        // }
+            Category? category = _categoryRepo.FindByName(categoryName);
+            if (category == null)
+            {
+                category = _categoryRepo.Create(new Category(categoryName));
+            }
+
+            _repo.Create(new PostCategory(post, category));
+        }
 
         throw new ResponseOK("Edit Success");
     }
