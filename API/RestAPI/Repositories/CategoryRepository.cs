@@ -10,7 +10,11 @@ namespace Diorama.RestAPI.Repositories;
 public interface ICategoryRepository
 {
     Category Create(Category category);
+
     Category? FindByName(string categoryName);
+
+    (IEnumerable<Category>, int, int) GetCategoriesByName(string name, int page);
+
     void Delete(Category category);    
 }
 
@@ -36,5 +40,33 @@ public class CategoryRepository : BaseRepository<Category>, ICategoryRepository
     public Category? FindByName(string categoryName)
     {
         return db?.Where(x => x.Name == categoryName).FirstOrDefault();
+    }
+
+    public (IEnumerable<Category>, int, int) GetCategoriesByName(string name, int page)
+    {
+        if (page < 1)
+        {
+            page = 1;
+        }
+
+        int offset = 20 * (page - 1);
+        double count = db!.Where(e => EF.Functions.Like(e.Name, $"%{name}%")).Count();
+        int maxPage = 0;
+
+        if (count > 0)
+        {
+            maxPage = (int)Math.Ceiling(count / 20);
+        }
+
+        return (
+            db!
+                .TemporalAll()
+                .Where(e => EF.Functions.Like(e.Name, $"%{name}%"))
+                .Take(20)
+                .Skip(offset)
+                .ToList(),
+            page, 
+            maxPage
+        );
     }
 }

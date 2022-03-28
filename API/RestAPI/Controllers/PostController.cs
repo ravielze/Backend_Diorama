@@ -56,6 +56,14 @@ public class PostController : ControllerBase
         int userId = (int)HttpHelper.ContextItems["user_id"];
         _service.GetSpesificPost(userId, pageId);
     }
+     
+    [Authorize]
+    [HttpGet("category/{categoryId}")]
+    public void GetCategoryPosts(int categoryId, [FromQuery(Name = "page")] int page = 1)
+    {
+        int userId = (int)HttpHelper.ContextItems["user_id"];
+        _service.GetCategoryPosts(userId, categoryId, page);
+    }
 
     [Authorize]
     [HttpPost("")]

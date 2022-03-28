@@ -13,5 +13,6 @@ public class Services : ILayer
     {
         _services.AddScoped<IUserService, UserService>();
         _services.AddScoped<IPostService, PostService>();
+        _services.AddScoped<ICategoryService, CategoryService>();
     }
 }

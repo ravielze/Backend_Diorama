@@ -15,10 +15,11 @@ public interface IPostService
     void UnlikePost(int userId, int pageId);
     void DeletePost(int userId, int postId);
     void GetSpesificPost(int userId, int pageId);
-    void GetPostForHomePage(int userId, int page);
-    void GetPostForExplorePage(int userId, int page);
+    void GetPostForHomePage(int userId, int p);
+    void GetPostForExplorePage(int userId, int p);
     void EditPost(int userId, EditPostContract contract);
     void CreatePost(int userId, CreatePostContract contract);
+    void GetCategoryPosts(int userId, int categoryId, int p);
 }
 
 public class PostService : IPostService
@@ -96,6 +97,27 @@ public class PostService : IPostService
         }
 
         (var posts, var page, var maxPage) = _repo.GetNewestExplore(p);
+        if (maxPage == 0)
+        {
+            throw new ResponseOK(new PostsContract(posts, 1, 1));
+        }
+        else if (page > maxPage)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Page not found.");
+        }
+
+        throw new ResponseOK(new PostsContract(posts, page, maxPage));
+    }
+
+    public void GetCategoryPosts(int userId, int categoryId, int p)
+    {
+        User? user = _userRepo.FindById(userId);
+        if (user == null)
+        {
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+        }
+
+        (var posts, var page, var maxPage) = _repo.GetPostByCategory(categoryId, p);
         if (maxPage == 0)
         {
             throw new ResponseOK(new PostsContract(posts, 1, 1));

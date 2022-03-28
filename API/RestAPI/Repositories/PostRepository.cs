@@ -19,6 +19,7 @@ public interface IPostRepository
 
     (IEnumerable<Post>, int, int) GetNewestExplore(int page);
     (IEnumerable<Post>, int, int) GetNewest(int requesterId, int page);
+    (IEnumerable<Post>, int, int) GetPostByCategory(int categoryId, int page);
 
     void DeletePost(Post post);
     void Delete(PostLike postLike);
@@ -114,7 +115,7 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
             .Select<Follower, int>(p => p.FollowObjectID);
 
         int maxPage = 0;
-        double count = db!.Count();
+        double count = db!.Where(p => following.Contains(p.AuthorID)).Count();
         if (count > 0)
         {
             maxPage = (int)Math.Ceiling(count / 20);
@@ -159,6 +160,42 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
                 .Skip(offset)
                 .ToList(), 
             page, 
+            maxPage
+        );
+    }
+
+    public (IEnumerable<Post>, int, int) GetPostByCategory(int categoryId, int page)
+    {
+        if (page < 1)
+        {
+            page = 1;
+        }
+
+        int offset = 20 * (page - 1);
+
+        IEnumerable<int> postsId = dbContext
+            .PostCategory!
+            .Where(p => p.CategoryID == categoryId)
+            .ToList()
+            .Select<PostCategory, int>(p => p.PostID);
+
+        int maxPage = 0;
+        double count = db!.Where(p => postsId.Contains(p.ID)).Count();
+        if (count > 0)
+        {
+            maxPage = (int)Math.Ceiling(count / 20);
+        }
+
+        return(
+            db!
+                .TemporalAll()
+                .Include(p => p.Author)
+                .Where(p => postsId.Contains(p.ID))
+                .OrderBy(e => EF.Property<DateTime>(e, "CreatedAt"))
+                .Take(20)
+                .Skip(offset)
+                .ToList(),
+            page,
             maxPage
         );
     }
