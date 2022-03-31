@@ -10,14 +10,23 @@ namespace Diorama.RestAPI.Repositories;
 public interface IPostRepository
 {
     Post Create(Post post);
+
     Post? FindById(int id);
-    void Delete(PostLike postLike);
+
     PostLike Create(PostLike postLike);
-    void UpdateLike(Post post, string action);
-    (IEnumerable<Post>, int, int) GetNewest(int requesterId, int page);
+
+    PostCategory Create(PostCategory postCategory);
+
     (IEnumerable<Post>, int, int) GetNewestExplore(int page);
     Comment CreateComment(Comment comment);
     List<Comment> GetPostComments(int postId);
+    (IEnumerable<Post>, int, int) GetNewest(int requesterId, int page);
+    (IEnumerable<Post>, int, int) GetPostByCategory(int categoryId, int page);
+
+    void DeletePost(Post post);
+    void Delete(PostLike postLike);
+    void UpdateLike(Post post, string action);
+    void UpdatePost(Post post, String caption);
 }
 
 public class PostRepository : BaseRepository<Post>, IPostRepository
@@ -27,6 +36,13 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
     public PostRepository(Database dbContext) : base(dbContext, dbContext.Post)
     {
         dbComment = dbContext.Comment!;
+    }
+
+    public PostCategory Create(PostCategory postCategory)
+    {
+        dbContext.PostCategory!.Add(postCategory);
+        Save();
+        return postCategory;
     }
 
     public PostLike Create(PostLike postLike)
@@ -82,6 +98,28 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
         return db?.Where(x => x.ID == id).Include(p => p.Author).FirstOrDefault();
     }
 
+    public void DeletePost(Post post)
+    {
+        IEnumerable<PostCategory> postCategoryList = dbContext
+            .PostCategory!
+            .Where(p => p.PostID == post.ID)
+            .ToList();
+        dbContext.PostCategory!.RemoveRange(postCategoryList);
+        db?.Remove(post);
+        Save();
+    }
+
+    public void UpdatePost(Post post, String caption)
+    {
+        IEnumerable<PostCategory> postCategoryList = dbContext
+            .PostCategory!
+            .Where(p => p.PostID == post.ID)
+            .ToList();
+        dbContext.PostCategory!.RemoveRange(postCategoryList);
+        post.Caption = caption;
+        Save();
+    }
+
     public (IEnumerable<Post>, int, int) GetNewest(int requesterId, int page)
     {
         if (page < 1)
@@ -98,7 +136,7 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
             .Select<Follower, int>(p => p.FollowObjectID);
 
         int maxPage = 0;
-        double count = db!.Count();
+        double count = db!.Where(p => following.Contains(p.AuthorID)).Count();
         if (count > 0)
         {
             maxPage = (int)Math.Ceiling(count / 20);
@@ -134,12 +172,52 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
             maxPage = (int)Math.Ceiling(count / 20);
         }
 
-        return (db!.
-            TemporalAll().
-            Include(p => p.Author).
-            OrderBy(e => EF.Property<DateTime>(e, "CreatedAt")).
-            Take(20).
-            Skip(offset).
-            ToList(), page, maxPage);
+        return (
+            db!
+                .TemporalAll()
+                .Include(p => p.Author)
+                .OrderBy(e => EF.Property<DateTime>(e, "CreatedAt"))
+                .Take(20)
+                .Skip(offset)
+                .ToList(),
+            page,
+            maxPage
+        );
+    }
+
+    public (IEnumerable<Post>, int, int) GetPostByCategory(int categoryId, int page)
+    {
+        if (page < 1)
+        {
+            page = 1;
+        }
+
+        int offset = 20 * (page - 1);
+
+        IEnumerable<int> postsId = dbContext
+            .PostCategory!
+            .Where(p => p.CategoryID == categoryId)
+            .ToList()
+            .Select<PostCategory, int>(p => p.PostID);
+
+        int maxPage = 0;
+        double count = db!.Where(p => postsId.Contains(p.ID)).Count();
+        if (count > 0)
+        {
+            maxPage = (int)Math.Ceiling(count / 20);
+        }
+
+        return (
+            db!
+                .TemporalAll()
+                .Include(p => p.Author)
+                .Where(p => postsId.Contains(p.ID))
+                .OrderBy(e => EF.Property<DateTime>(e, "CreatedAt"))
+                .Take(20)
+                .Skip(offset)
+                .ToList(),
+            page,
+            maxPage
+        );
     }
 }

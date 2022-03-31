@@ -34,4 +34,6 @@ public partial class Database : DbContext
     public DbSet<PostLike>? PostLike { get; set; }
 
     public DbSet<Comment>? Comment { get; set; }
+    public DbSet<PostCategory>? PostCategory { get; set; }
+    public DbSet<Category>? Category { get; set; }
 }

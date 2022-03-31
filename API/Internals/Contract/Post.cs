@@ -1,4 +1,3 @@
-using System.Collections;
 using System.ComponentModel.DataAnnotations;
 using Diorama.Internals.Persistent.Models;
 
@@ -23,6 +22,17 @@ public class CommentContract
     [Required]
     [MinLength(1)]
     public string Content { get; set; } = "";
+}
+
+public class EditPostContract
+{
+
+    [Required]
+    public int ID { get; set; } = 0;
+
+    [Required]
+    [MinLength(1)]
+    public string Caption { get; set; } = "";
 }
 
 public class PostsContract

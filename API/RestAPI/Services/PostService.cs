@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Collections;
+using System.Text.RegularExpressions;
 using Diorama.RestAPI.Repositories;
 using Diorama.Internals.Contract;
 using Diorama.Internals.Responses;
@@ -10,25 +11,29 @@ namespace Diorama.RestAPI.Services;
 
 public interface IPostService
 {
-    void CreatePost(int userId, CreatePostContract contract);
     void Comment(int userId, int postId, CommentContract contract);
-    void GetPostForHomePage(int userId, int page);
-    void GetPostForExplorePage(int userId, int page);
-    void GetSpesificPost(int userId, int pageId);
     void LikePost(int userId, int pageId);
     void UnlikePost(int userId, int pageId);
+    void DeletePost(int userId, int postId);
+    void GetSpesificPost(int userId, int pageId);
+    void GetPostForHomePage(int userId, int p);
+    void GetPostForExplorePage(int userId, int p);
+    void EditPost(int userId, EditPostContract contract);
+    void CreatePost(int userId, CreatePostContract contract);
+    void GetCategoryPosts(int userId, int categoryId, int p);
 }
 
 public class PostService : IPostService
 {
-
     private IPostRepository _repo;
     private IUserRepository _userRepo;
+    private ICategoryRepository _categoryRepo;
 
-    public PostService(IPostRepository repo, IUserRepository userRepo)
+    public PostService(IPostRepository repo, IUserRepository userRepo, ICategoryRepository categoryRepo)
     {
         _repo = repo;
         _userRepo = userRepo;
+        _categoryRepo = categoryRepo;
     }
 
     public void CreatePost(int userId, CreatePostContract contract)
@@ -38,7 +43,28 @@ public class PostService : IPostService
         {
             throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
         }
-        _repo.Create(new Post(user, contract));
+
+        Post post = _repo.Create(new Post(user, contract));
+
+        string caption = contract.Caption;
+        string pattern = @"#(\w+)";
+
+        Regex regex = new Regex(pattern);
+        MatchCollection result = regex.Matches(caption);
+
+        for (int i = 0; i < result.Count; i++)
+        {
+            string categoryName = result[i].Value.Remove(0, 1).ToLower();
+
+            Category? category = _categoryRepo.FindByName(categoryName);
+            if (category == null)
+            {
+                category = _categoryRepo.Create(new Category(categoryName));
+            }
+
+            _repo.Create(new PostCategory(post, category));
+        }
+
         throw new ResponseOK("Post created.");
     }
 
@@ -72,6 +98,27 @@ public class PostService : IPostService
         }
 
         (var posts, var page, var maxPage) = _repo.GetNewestExplore(p);
+        if (maxPage == 0)
+        {
+            throw new ResponseOK(new PostsContract(posts, 1, 1));
+        }
+        else if (page > maxPage)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Page not found.");
+        }
+
+        throw new ResponseOK(new PostsContract(posts, page, maxPage));
+    }
+
+    public void GetCategoryPosts(int userId, int categoryId, int p)
+    {
+        User? user = _userRepo.FindById(userId);
+        if (user == null)
+        {
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+        }
+
+        (var posts, var page, var maxPage) = _repo.GetPostByCategory(categoryId, p);
         if (maxPage == 0)
         {
             throw new ResponseOK(new PostsContract(posts, 1, 1));
@@ -179,5 +226,59 @@ public class PostService : IPostService
         comment.Content = contract.Content;
         _repo.CreateComment(comment);
         throw new ResponseOK("Comment Success");
+    }
+
+    public void DeletePost(int userId, int postId)
+    {
+        Post? post = _repo.FindById(postId);
+        if (post == null)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
+        }
+        if (post.AuthorID != userId)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
+        }
+
+        _repo.DeletePost(post);
+
+        throw new ResponseOK("Delete Success");
+    }
+
+    public void EditPost(int userId, EditPostContract contract)
+    {
+        Post? post = _repo.FindById(contract.ID);
+        if (post == null)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
+        }
+
+        if (post.AuthorID != userId)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
+        }
+
+        _repo.UpdatePost(post, contract.Caption);
+
+        string caption = contract.Caption;
+        string pattern = @"#(\w+)";
+
+        Regex regex = new Regex(pattern);
+        MatchCollection result = regex.Matches(caption);
+
+        for (int i = 0; i < result.Count; i++)
+        {
+            string categoryName = result[i].Value.Remove(0, 1).ToLower();
+
+            Category? category = _categoryRepo.FindByName(categoryName);
+            if (category == null)
+            {
+                category = _categoryRepo.Create(new Category(categoryName));
+            }
+
+            _repo.Create(new PostCategory(post, category));
+        }
+
+        throw new ResponseOK("Edit Success");
     }
 }
