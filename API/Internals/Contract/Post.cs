@@ -18,6 +18,13 @@ public class CreatePostContract
 
 }
 
+public class CommentContract
+{
+    [Required]
+    [MinLength(1)]
+    public string Content { get; set; } = "";
+}
+
 public class PostsContract
 {
     public int Page { get; set; } = 1;

@@ -11,6 +11,7 @@ namespace Diorama.RestAPI.Services;
 public interface IPostService
 {
     void CreatePost(int userId, CreatePostContract contract);
+    void Comment(int userId, int postId, CommentContract contract);
     void GetPostForHomePage(int userId, int page);
     void GetPostForExplorePage(int userId, int page);
     void GetSpesificPost(int userId, int pageId);
@@ -82,7 +83,7 @@ public class PostService : IPostService
 
         throw new ResponseOK(new PostsContract(posts, page, maxPage));
     }
-    
+
     public void GetSpesificPost(int userId, int pageId)
     {
         User? user = _userRepo.FindById(userId);
@@ -156,5 +157,27 @@ public class PostService : IPostService
         _repo.UpdateLike(post, "unlike");
 
         throw new ResponseOK("Unlike Success");
+    }
+
+    public void Comment(int userId, int postId, CommentContract contract)
+    {
+        User? user = _userRepo.FindById(userId);
+        if (user == null)
+        {
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+        }
+        Post? post = _repo.FindById(postId);
+        if (post == null)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
+        }
+        Comment comment = new Comment();
+        comment.Author = user;
+        comment.AuthorID = user.ID;
+        comment.Post = post;
+        comment.PostID = post.ID;
+        comment.Content = contract.Content;
+        _repo.CreateComment(comment);
+        throw new ResponseOK("Comment Success");
     }
 }

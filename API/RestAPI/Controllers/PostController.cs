@@ -34,27 +34,27 @@ public class PostController : ControllerBase
     }
 
     [Authorize]
-    [HttpPost("{pageId}/like")]
-    public void LikePost(int pageId)
+    [HttpPost("{postId}/like")]
+    public void LikePost(int postId)
     {
         int userId = (int)HttpHelper.ContextItems["user_id"];
-        _service.LikePost(userId, pageId);
+        _service.LikePost(userId, postId);
     }
 
     [Authorize]
-    [HttpPost("{pageId}/unlike")]
-    public void UnlikePost(int pageId)
+    [HttpPost("{postId}/unlike")]
+    public void UnlikePost(int postId)
     {
         int userId = (int)HttpHelper.ContextItems["user_id"];
-        _service.UnlikePost(userId, pageId);
+        _service.UnlikePost(userId, postId);
     }
 
     [Authorize]
-    [HttpGet("{pageId}")]
-    public void GetSpesificPost(int pageId)
+    [HttpGet("{postId}")]
+    public void GetSpesificPost(int postId)
     {
         int userId = (int)HttpHelper.ContextItems["user_id"];
-        _service.GetSpesificPost(userId, pageId);
+        _service.GetSpesificPost(userId, postId);
     }
 
     [Authorize]
@@ -63,5 +63,13 @@ public class PostController : ControllerBase
     {
         int userId = (int)HttpHelper.ContextItems["user_id"];
         _service.CreatePost(userId, contract);
+    }
+
+    [Authorize]
+    [HttpPost("{postId}/comment")]
+    public void CreateComment(int postId, CommentContract contract)
+    {
+        int userId = (int)HttpHelper.ContextItems["user_id"];
+        _service.Comment(userId, postId, contract);
     }
 }

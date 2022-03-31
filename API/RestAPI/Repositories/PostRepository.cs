@@ -16,13 +16,17 @@ public interface IPostRepository
     void UpdateLike(Post post, string action);
     (IEnumerable<Post>, int, int) GetNewest(int requesterId, int page);
     (IEnumerable<Post>, int, int) GetNewestExplore(int page);
+    Comment CreateComment(Comment comment);
+    List<Comment> GetPostComments(int postId);
 }
 
 public class PostRepository : BaseRepository<Post>, IPostRepository
 {
+    protected DbSet<Comment> dbComment;
 
     public PostRepository(Database dbContext) : base(dbContext, dbContext.Post)
     {
+        dbComment = dbContext.Comment!;
     }
 
     public PostLike Create(PostLike postLike)
@@ -45,15 +49,30 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
         return post;
     }
 
+    public Comment CreateComment(Comment comment)
+    {
+        dbComment.Add(comment);
+        Save();
+        return comment;
+    }
+
+    public List<Comment> GetPostComments(int postId)
+    {
+        return dbComment.Where(x => x.ID == postId).Include(x => x.Author).ToList();
+    }
+
     public void UpdateLike(Post post, string action)
     {
         int value;
-        if(action == "like") {
+        if (action == "like")
+        {
             value = 1;
-        } else {
+        }
+        else
+        {
             value = -1;
         }
-        
+
         post.Likes += value;
         Save();
     }
@@ -85,7 +104,7 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
             maxPage = (int)Math.Ceiling(count / 20);
         }
 
-        return(
+        return (
             db!
                 .TemporalAll()
                 .Include(p => p.Author)
