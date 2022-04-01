@@ -24,6 +24,18 @@ public class CommentContract
     public string Content { get; set; } = "";
 }
 
+public class CommentResponseContract
+{
+    public string Content { get; set; }
+    public string From { get; set; }
+
+    public CommentResponseContract(Comment c, String userName)
+    {
+        Content = c.Content;
+        From = userName;
+    }
+}
+
 public class EditPostContract
 {
 

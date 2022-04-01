@@ -81,6 +81,12 @@ public class PostController : ControllerBase
         _service.Comment(userId, postId, contract);
     }
 
+    [HttpGet("{postId}/comment")]
+    public void Comments(int postId)
+    {
+        _service.GetPostComments(postId);
+    }
+
     [HttpDelete("{postId}")]
     public void DeletePost(int postId)
     {

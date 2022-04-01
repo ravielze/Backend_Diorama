@@ -21,6 +21,7 @@ public interface IPostService
     void EditPost(int userId, EditPostContract contract);
     void CreatePost(int userId, CreatePostContract contract);
     void GetCategoryPosts(int userId, int categoryId, int p);
+    void GetPostComments(int postId);
 }
 
 public class PostService : IPostService
@@ -226,6 +227,17 @@ public class PostService : IPostService
         comment.Content = contract.Content;
         _repo.CreateComment(comment);
         throw new ResponseOK("Comment Success");
+    }
+    public void GetPostComments(int postId)
+    {
+        Post? post = _repo.FindById(postId);
+        if (post == null)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
+        }
+        var result = _repo.GetPostComments(postId);
+
+        throw new ResponseOK(result.Select(x => new CommentResponseContract(x, x.Author.Username)));
     }
 
     public void DeletePost(int userId, int postId)
