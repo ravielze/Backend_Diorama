@@ -11,6 +11,7 @@ namespace Diorama.RestAPI.Services;
 
 public interface IPostService
 {
+    void Comment(int userId, int postId, CommentContract contract);
     void LikePost(int userId, int pageId);
     void UnlikePost(int userId, int pageId);
     void DeletePost(int userId, int postId);
@@ -20,6 +21,7 @@ public interface IPostService
     void EditPost(int userId, EditPostContract contract);
     void CreatePost(int userId, CreatePostContract contract);
     void GetCategoryPosts(int userId, int categoryId, int p);
+    void GetPostComments(int postId);
 }
 
 public class PostService : IPostService
@@ -42,18 +44,18 @@ public class PostService : IPostService
         {
             throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
         }
-        
+
         Post post = _repo.Create(new Post(user, contract));
 
         string caption = contract.Caption;
         string pattern = @"#(\w+)";
 
-        Regex regex = new Regex(pattern); 
-        MatchCollection result = regex.Matches(caption); 
+        Regex regex = new Regex(pattern);
+        MatchCollection result = regex.Matches(caption);
 
         for (int i = 0; i < result.Count; i++)
         {
-            string categoryName = result[i].Value.Remove(0,1).ToLower();
+            string categoryName = result[i].Value.Remove(0, 1).ToLower();
 
             Category? category = _categoryRepo.FindByName(categoryName);
             if (category == null)
@@ -129,7 +131,7 @@ public class PostService : IPostService
 
         throw new ResponseOK(new PostsContract(posts, page, maxPage));
     }
-    
+
     public void GetSpesificPost(int userId, int pageId)
     {
         User? user = _userRepo.FindById(userId);
@@ -205,6 +207,39 @@ public class PostService : IPostService
         throw new ResponseOK("Unlike Success");
     }
 
+    public void Comment(int userId, int postId, CommentContract contract)
+    {
+        User? user = _userRepo.FindById(userId);
+        if (user == null)
+        {
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+        }
+        Post? post = _repo.FindById(postId);
+        if (post == null)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
+        }
+        Comment comment = new Comment();
+        comment.Author = user;
+        comment.AuthorID = user.ID;
+        comment.Post = post;
+        comment.PostID = post.ID;
+        comment.Content = contract.Content;
+        _repo.CreateComment(comment);
+        throw new ResponseOK("Comment Success");
+    }
+    public void GetPostComments(int postId)
+    {
+        Post? post = _repo.FindById(postId);
+        if (post == null)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
+        }
+        var result = _repo.GetPostComments(postId);
+
+        throw new ResponseOK(result.Select(x => new CommentResponseContract(x, x.Author.Username)));
+    }
+
     public void DeletePost(int userId, int postId)
     {
         Post? post = _repo.FindById(postId);
@@ -212,8 +247,8 @@ public class PostService : IPostService
         {
             throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
         }
-
-        if (post.AuthorID != userId) {
+        if (post.AuthorID != userId)
+        {
             throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
         }
 
@@ -230,7 +265,8 @@ public class PostService : IPostService
             throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
         }
 
-        if (post.AuthorID != userId) {
+        if (post.AuthorID != userId)
+        {
             throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
         }
 
@@ -239,12 +275,12 @@ public class PostService : IPostService
         string caption = contract.Caption;
         string pattern = @"#(\w+)";
 
-        Regex regex = new Regex(pattern); 
-        MatchCollection result = regex.Matches(caption); 
+        Regex regex = new Regex(pattern);
+        MatchCollection result = regex.Matches(caption);
 
         for (int i = 0; i < result.Count; i++)
         {
-            string categoryName = result[i].Value.Remove(0,1).ToLower();
+            string categoryName = result[i].Value.Remove(0, 1).ToLower();
 
             Category? category = _categoryRepo.FindByName(categoryName);
             if (category == null)

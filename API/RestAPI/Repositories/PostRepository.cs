@@ -18,6 +18,8 @@ public interface IPostRepository
     PostCategory Create(PostCategory postCategory);
 
     (IEnumerable<Post>, int, int) GetNewestExplore(int page);
+    Comment CreateComment(Comment comment);
+    List<Comment> GetPostComments(int postId);
     (IEnumerable<Post>, int, int) GetNewest(int requesterId, int page);
     (IEnumerable<Post>, int, int) GetPostByCategory(int categoryId, int page);
 
@@ -29,16 +31,18 @@ public interface IPostRepository
 
 public class PostRepository : BaseRepository<Post>, IPostRepository
 {
+    protected DbSet<Comment> dbComment;
 
     public PostRepository(Database dbContext) : base(dbContext, dbContext.Post)
     {
+        dbComment = dbContext.Comment!;
     }
 
     public PostCategory Create(PostCategory postCategory)
     {
         dbContext.PostCategory!.Add(postCategory);
         Save();
-        return postCategory;        
+        return postCategory;
     }
 
     public PostLike Create(PostLike postLike)
@@ -61,15 +65,30 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
         return post;
     }
 
+    public Comment CreateComment(Comment comment)
+    {
+        dbComment.Add(comment);
+        Save();
+        return comment;
+    }
+
+    public List<Comment> GetPostComments(int postId)
+    {
+        return dbComment.Where(x => x.ID == postId).Include(x => x.Author).ToList();
+    }
+
     public void UpdateLike(Post post, string action)
     {
         int value;
-        if(action == "like") {
+        if (action == "like")
+        {
             value = 1;
-        } else {
+        }
+        else
+        {
             value = -1;
         }
-        
+
         post.Likes += value;
         Save();
     }
@@ -79,7 +98,8 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
         return db?.Where(x => x.ID == id).Include(p => p.Author).FirstOrDefault();
     }
 
-    public void DeletePost(Post post){
+    public void DeletePost(Post post)
+    {
         IEnumerable<PostCategory> postCategoryList = dbContext
             .PostCategory!
             .Where(p => p.PostID == post.ID)
@@ -89,7 +109,8 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
         Save();
     }
 
-    public void UpdatePost(Post post, String caption) {
+    public void UpdatePost(Post post, String caption)
+    {
         IEnumerable<PostCategory> postCategoryList = dbContext
             .PostCategory!
             .Where(p => p.PostID == post.ID)
@@ -121,7 +142,7 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
             maxPage = (int)Math.Ceiling(count / 20);
         }
 
-        return(
+        return (
             db!
                 .TemporalAll()
                 .Include(p => p.Author)
@@ -158,8 +179,8 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
                 .OrderBy(e => EF.Property<DateTime>(e, "CreatedAt"))
                 .Take(20)
                 .Skip(offset)
-                .ToList(), 
-            page, 
+                .ToList(),
+            page,
             maxPage
         );
     }
@@ -186,7 +207,7 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
             maxPage = (int)Math.Ceiling(count / 20);
         }
 
-        return(
+        return (
             db!
                 .TemporalAll()
                 .Include(p => p.Author)

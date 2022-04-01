@@ -17,12 +17,31 @@ public class CreatePostContract
 
 }
 
+public class CommentContract
+{
+    [Required]
+    [MinLength(1)]
+    public string Content { get; set; } = "";
+}
+
+public class CommentResponseContract
+{
+    public string Content { get; set; }
+    public string From { get; set; }
+
+    public CommentResponseContract(Comment c, String userName)
+    {
+        Content = c.Content;
+        From = userName;
+    }
+}
+
 public class EditPostContract
 {
 
     [Required]
     public int ID { get; set; } = 0;
-    
+
     [Required]
     [MinLength(1)]
     public string Caption { get; set; } = "";
