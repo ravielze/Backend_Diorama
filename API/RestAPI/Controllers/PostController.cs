@@ -95,7 +95,7 @@ public class PostController : ControllerBase
     }
 
     [Authorize]
-    [HttpPatch("")]
+    [HttpPut("")]
     public void EditPost(EditPostContract contract)
     {
         int userId = (int)HttpHelper.ContextItems["user_id"];
