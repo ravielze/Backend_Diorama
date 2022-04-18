@@ -20,7 +20,7 @@ public class CreatePostContract
 public class LikeStatusContract
 {
     public bool Status { get; set; }
-    
+
     public LikeStatusContract(bool status)
     {
         Status = status;
@@ -59,15 +59,11 @@ public class EditPostContract
 
 public class PostsContract
 {
-    public int Page { get; set; } = 1;
-    public int MaxPage { get; set; } = 1;
     public IEnumerable<PostContract> Posts;
 
-    public PostsContract(IEnumerable<Post> posts, int page, int maxPage)
+    public PostsContract(IEnumerable<Post> posts)
     {
         Posts = posts.Select<Post, PostContract>(x => new PostContract(x));
-        Page = page;
-        MaxPage = maxPage;
     }
 }
 

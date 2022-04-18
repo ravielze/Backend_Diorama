@@ -16,7 +16,8 @@ public interface IPostService
     void UnlikePost(int userId, int pageId);
     void DeletePost(int userId, int postId);
     void GetSpesificPost(int userId, int pageId);
-    void GetPostForHomePage(int userId, int p);
+    void GetPostForHomePage(int userId);
+    void GetPostMine(int userId);
     void GetPostForExplorePage(int userId, int p);
     void EditPost(int userId, EditPostContract contract);
     void CreatePost(int userId, CreatePostContract contract);
@@ -70,7 +71,7 @@ public class PostService : IPostService
         throw new ResponseOK("Post created.");
     }
 
-    public void GetPostForHomePage(int userId, int p)
+    public void GetPostForHomePage(int userId)
     {
         User? user = _userRepo.FindById(userId);
         if (user == null)
@@ -78,17 +79,22 @@ public class PostService : IPostService
             throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
         }
 
-        (var posts, var page, var maxPage) = _repo.GetNewest(user!.ID, p);
-        if (maxPage == 0)
+        var posts = _repo.GetNewest(user!.ID);
+
+        throw new ResponseOK(new PostsContract(posts));
+    }
+
+    public void GetPostMine(int userId)
+    {
+        User? user = _userRepo.FindById(userId);
+        if (user == null)
         {
-            throw new ResponseOK(new PostsContract(posts, 1, 1));
-        }
-        else if (page > maxPage)
-        {
-            throw new ResponseError(HttpStatusCode.NotFound, "Page not found.");
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
         }
 
-        throw new ResponseOK(new PostsContract(posts, page, maxPage));
+        var posts = _repo.GetSelf(user!.ID);
+
+        throw new ResponseOK(new PostsContract(posts));
     }
 
     public void GetPostForExplorePage(int userId, int p)
@@ -99,17 +105,8 @@ public class PostService : IPostService
             throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
         }
 
-        (var posts, var page, var maxPage) = _repo.GetNewestExplore(p);
-        if (maxPage == 0)
-        {
-            throw new ResponseOK(new PostsContract(posts, 1, 1));
-        }
-        else if (page > maxPage)
-        {
-            throw new ResponseError(HttpStatusCode.NotFound, "Page not found.");
-        }
-
-        throw new ResponseOK(new PostsContract(posts, page, maxPage));
+        var posts = _repo.GetNewestExplore();
+        throw new ResponseOK(new PostsContract(posts));
     }
 
     public void GetCategoryPosts(int userId, int categoryId, int p)
@@ -120,17 +117,9 @@ public class PostService : IPostService
             throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
         }
 
-        (var posts, var page, var maxPage) = _repo.GetPostByCategory(categoryId, p);
-        if (maxPage == 0)
-        {
-            throw new ResponseOK(new PostsContract(posts, 1, 1));
-        }
-        else if (page > maxPage)
-        {
-            throw new ResponseError(HttpStatusCode.NotFound, "Page not found.");
-        }
+        var posts = _repo.GetPostByCategory(categoryId);
 
-        throw new ResponseOK(new PostsContract(posts, page, maxPage));
+        throw new ResponseOK(new PostsContract(posts));
     }
 
     public void GetSpesificPost(int userId, int pageId)
@@ -165,7 +154,7 @@ public class PostService : IPostService
         }
 
         PostLike? postLikeInstance = _repo.GetPostLike(userId, postId);
-        if(postLikeInstance == null)
+        if (postLikeInstance == null)
         {
             throw new ResponseOK(new LikeStatusContract(false));
         }

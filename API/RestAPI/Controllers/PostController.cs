@@ -18,11 +18,19 @@ public class PostController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("personal")]
-    public void GetHomePage([FromQuery(Name = "page")] int page = 1)
+    [HttpGet("mine")]
+    public void GetMine()
     {
         int userId = (int)HttpHelper.ContextItems["user_id"];
-        _service.GetPostForHomePage(userId, page);
+        _service.GetPostMine(userId);
+    }
+
+    [Authorize]
+    [HttpGet("homepage")]
+    public void GetHomePage()
+    {
+        int userId = (int)HttpHelper.ContextItems["user_id"];
+        _service.GetPostForHomePage(userId);
     }
 
     [Authorize]

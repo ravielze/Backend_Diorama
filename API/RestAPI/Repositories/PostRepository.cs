@@ -19,11 +19,12 @@ public interface IPostRepository
 
     PostCategory Create(PostCategory postCategory);
 
-    (IEnumerable<Post>, int, int) GetNewestExplore(int page);
+    IEnumerable<Post> GetNewestExplore();
     Comment CreateComment(Comment comment);
     List<Comment> GetPostComments(int postId);
-    (IEnumerable<Post>, int, int) GetNewest(int requesterId, int page);
-    (IEnumerable<Post>, int, int) GetPostByCategory(int categoryId, int page);
+    IEnumerable<Post> GetNewest(int requesterId);
+    IEnumerable<Post> GetSelf(int requesterId);
+    IEnumerable<Post> GetPostByCategory(int categoryId);
 
     void DeletePost(Post post);
     void Delete(PostLike postLike);
@@ -127,104 +128,56 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
         Save();
     }
 
-    public (IEnumerable<Post>, int, int) GetNewest(int requesterId, int page)
+    public IEnumerable<Post> GetNewest(int requesterId)
     {
-        if (page < 1)
-        {
-            page = 1;
-        }
-
-        int offset = 20 * (page - 1);
-
         IEnumerable<int> following = dbContext
             .Follower!
             .Where(p => p.FollowSubjectID == requesterId)
             .ToList()
             .Select<Follower, int>(p => p.FollowObjectID);
 
-        int maxPage = 0;
-        double count = db!.Where(p => following.Contains(p.AuthorID)).Count();
-        if (count > 0)
-        {
-            maxPage = (int)Math.Ceiling(count / 20);
-        }
-
-        return (
-            db!
+        return db!
                 .TemporalAll()
                 .Include(p => p.Author)
                 .Where(p => following.Contains(p.AuthorID))
                 .OrderBy(e => EF.Property<DateTime>(e, "CreatedAt"))
-                .Take(20)
-                .Skip(offset)
-                .ToList(),
-            page,
-            maxPage
-        );
+                .Take(50)
+                .ToList();
     }
 
-    public (IEnumerable<Post>, int, int) GetNewestExplore(int page)
+    public IEnumerable<Post> GetSelf(int requesterId)
     {
-        if (page < 1)
-        {
-            page = 1;
-        }
+        return db!
+                .TemporalAll()
+                .Include(p => p.Author)
+                .Where(p => p.AuthorID == requesterId)
+                .OrderBy(e => EF.Property<DateTime>(e, "CreatedAt"))
+                .ToList();
+    }
 
-        int offset = 20 * (page - 1);
-        double count = db!.Count();
-        int maxPage = 0;
-
-        if (count > 0)
-        {
-            maxPage = (int)Math.Ceiling(count / 20);
-        }
-
-        return (
-            db!
+    public IEnumerable<Post> GetNewestExplore()
+    {
+        return db!
                 .TemporalAll()
                 .Include(p => p.Author)
                 .OrderBy(e => EF.Property<DateTime>(e, "CreatedAt"))
-                .Take(20)
-                .Skip(offset)
-                .ToList(),
-            page,
-            maxPage
-        );
+                .Take(50)
+                .ToList();
     }
 
-    public (IEnumerable<Post>, int, int) GetPostByCategory(int categoryId, int page)
+    public IEnumerable<Post> GetPostByCategory(int categoryId)
     {
-        if (page < 1)
-        {
-            page = 1;
-        }
-
-        int offset = 20 * (page - 1);
-
         IEnumerable<int> postsId = dbContext
             .PostCategory!
             .Where(p => p.CategoryID == categoryId)
             .ToList()
             .Select<PostCategory, int>(p => p.PostID);
-
-        int maxPage = 0;
-        double count = db!.Where(p => postsId.Contains(p.ID)).Count();
-        if (count > 0)
-        {
-            maxPage = (int)Math.Ceiling(count / 20);
-        }
-
-        return (
-            db!
+        return db!
                 .TemporalAll()
                 .Include(p => p.Author)
                 .Where(p => postsId.Contains(p.ID))
                 .OrderBy(e => EF.Property<DateTime>(e, "CreatedAt"))
-                .Take(20)
-                .Skip(offset)
-                .ToList(),
-            page,
-            maxPage
-        );
+                .Take(50)
+                .ToList();
     }
 }
