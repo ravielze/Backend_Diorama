@@ -12,6 +12,7 @@ public interface IUserRepository
     User CreateNormalUser(User user);
     User? Find(string username);
     User? FindById(int id);
+    IEnumerable<User>? FindUsers(string username);
 }
 
 public class UserRepository : BaseRepository<User>, IUserRepository
@@ -59,6 +60,11 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         return db?.Where(x => x.Username == username).Include(x => x.Role).FirstOrDefault();
     }
 
+    public IEnumerable<User>? FindUsers(string username)
+    {
+        return db?.Where(x => x.Username.ToLower().Contains(username.ToLower())).ToList();
+    }
+
     public User? FindById(int id)
     {
         return db?.Where(x => x.ID == id).Include(x => x.Role).FirstOrDefault();
@@ -75,14 +81,18 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         Create(user, normalUserRole);
     }
 
-    public void UpdateFollowersFollowingTotal(User currentUser, User targetUser, string action) {
+    public void UpdateFollowersFollowingTotal(User currentUser, User targetUser, string action)
+    {
         int value;
-        if(action == "follow") {
+        if (action == "follow")
+        {
             value = 1;
-        } else {
+        }
+        else
+        {
             value = -1;
         }
-        
+
         currentUser.Following += value;
         Save();
 

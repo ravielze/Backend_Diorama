@@ -71,6 +71,31 @@ public class UserContract
 
 }
 
+public class MinUserContract
+{
+    public int ID { get; private set; }
+    public string Username { get; private set; }
+    public string Name { get; private set; }
+    public string ProfilePicture { get; private set; }
+    public MinUserContract(User user)
+    {
+        ID = user.ID;
+        Username = user.Username;
+        Name = user.Name;
+        ProfilePicture = user.ProfilePicture;
+    }
+}
+
+public class SearchUserContract
+{
+    public IEnumerable<MinUserContract> Users;
+
+    public SearchUserContract(IEnumerable<User> users)
+    {
+        Users = users.Select<User, MinUserContract>(u => new MinUserContract(u));
+    }
+}
+
 public class UserAuthContract
 {
     public UserContract User { get; private set; }

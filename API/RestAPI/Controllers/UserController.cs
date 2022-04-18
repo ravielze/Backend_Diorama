@@ -31,6 +31,13 @@ public class UserController : ControllerBase
     }
 
     [Authorize]
+    [HttpGet("{username}/search")]
+    public void SearchUsername(string username)
+    {
+        _service.SearchUsername(username);
+    }
+
+    [Authorize]
     [HttpGet("")]
     public void GetUserProfile()
     {

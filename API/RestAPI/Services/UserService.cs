@@ -20,6 +20,8 @@ public interface IUserService
     void Follow(int id, string username);
     void Unfollow(int id, string username);
     void isFollowing(int userId, string username);
+
+    void SearchUsername(string username);
 }
 
 public class UserService : IUserService
@@ -200,5 +202,19 @@ public class UserService : IUserService
             isFollow = false;
         }
         throw new ResponseOK(isFollow);
+    }
+
+    public void SearchUsername(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username) || username.Trim().Count() < 3)
+        {
+            throw new ResponseOK(new SearchUserContract(new List<User>()));
+        }
+        var result = _userRepo.FindUsers(username);
+        if (result == null || result.Count() == 0)
+        {
+            throw new ResponseOK(new SearchUserContract(new List<User>()));
+        }
+        throw new ResponseOK(new SearchUserContract(result));
     }
 }
