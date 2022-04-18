@@ -15,6 +15,8 @@ public interface IPostRepository
 
     PostLike Create(PostLike postLike);
 
+    PostLike? GetPostLike(int userId, int postId);
+
     PostCategory Create(PostCategory postCategory);
 
     (IEnumerable<Post>, int, int) GetNewestExplore(int page);
@@ -56,6 +58,11 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
     {
         dbContext.PostLike!.Remove(postLike);
         Save();
+    }
+
+    public PostLike? GetPostLike(int userId, int postId)
+    {
+        return dbContext.PostLike!.Where(x => x.UserID == userId && x.PostID == postId).FirstOrDefault();
     }
 
     public Post Create(Post post)

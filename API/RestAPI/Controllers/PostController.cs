@@ -34,6 +34,14 @@ public class PostController : ControllerBase
     }
 
     [Authorize]
+    [HttpGet("{postId}/like/status")]
+    public void GetLikeStatus(int postId)
+    {
+        int userId = (int)HttpHelper.ContextItems["user_id"];
+        _service.GetLikeStatus(userId, postId);
+    }
+
+    [Authorize]
     [HttpPost("{postId}/like")]
     public void LikePost(int postId)
     {

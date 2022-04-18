@@ -17,6 +17,16 @@ public class CreatePostContract
 
 }
 
+public class LikeStatusContract
+{
+    public bool Status { get; set; }
+    
+    public LikeStatusContract(bool status)
+    {
+        Status = status;
+    }
+}
+
 public class CommentContract
 {
     [Required]

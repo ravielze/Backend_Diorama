@@ -22,6 +22,7 @@ public interface IPostService
     void CreatePost(int userId, CreatePostContract contract);
     void GetCategoryPosts(int userId, int categoryId, int p);
     void GetPostComments(int postId);
+    void GetLikeStatus(int userId, int postId);
 }
 
 public class PostService : IPostService
@@ -147,6 +148,31 @@ public class PostService : IPostService
         }
 
         throw new ResponseOK(new PostContract(post));
+    }
+
+    public void GetLikeStatus(int userId, int postId)
+    {
+        User? user = _userRepo.FindById(userId);
+        if (user == null)
+        {
+            throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
+        }
+
+        Post? post = _repo.FindById(postId);
+        if (post == null)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
+        }
+
+        PostLike? postLikeInstance = _repo.GetPostLike(userId, postId);
+        if(postLikeInstance == null)
+        {
+            throw new ResponseOK(new LikeStatusContract(false));
+        }
+        else
+        {
+            throw new ResponseOK(new LikeStatusContract(true));
+        }
     }
 
     public void LikePost(int userId, int pageId)
