@@ -240,20 +240,24 @@ public class PostService : IPostService
         {
             throw new ResponseError(HttpStatusCode.Conflict, "Data inconsistent.");
         }
+
         Post? post = _repo.FindById(postId);
         if (post == null)
         {
             throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
         }
+
         Comment comment = new Comment();
         comment.Author = user;
         comment.AuthorID = user.ID;
         comment.Post = post;
         comment.PostID = post.ID;
         comment.Content = contract.Content;
+
         _repo.CreateComment(comment);
         throw new ResponseOK("Comment Success");
     }
+
     public void GetPostComments(int postId)
     {
         Post? post = _repo.FindById(postId);
@@ -261,9 +265,10 @@ public class PostService : IPostService
         {
             throw new ResponseError(HttpStatusCode.NotFound, "Post with spesific id not found.");
         }
+
         var result = _repo.GetPostComments(postId);
 
-        throw new ResponseOK(result.Select(x => new CommentResponseContract(x, x.Author.Username)));
+        throw new ResponseOK(new CommentsContract(result));
     }
 
     public void DeletePost(int userId, int postId)

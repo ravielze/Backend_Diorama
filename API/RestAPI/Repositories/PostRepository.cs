@@ -21,7 +21,7 @@ public interface IPostRepository
 
     (IEnumerable<Post>, int, int) GetNewestExplore(int page);
     Comment CreateComment(Comment comment);
-    List<Comment> GetPostComments(int postId);
+    IEnumerable<Comment> GetPostComments(int postId);
     (IEnumerable<Post>, int, int) GetNewest(int requesterId, int page);
     (IEnumerable<Post>, int, int) GetPostByCategory(int categoryId, int page);
 
@@ -79,9 +79,9 @@ public class PostRepository : BaseRepository<Post>, IPostRepository
         return comment;
     }
 
-    public List<Comment> GetPostComments(int postId)
+    public IEnumerable<Comment> GetPostComments(int postId)
     {
-        return dbComment.Where(x => x.ID == postId).Include(x => x.Author).ToList();
+        return dbComment.Where(x => x.PostID == postId).Include(x => x.Author).ToList();
     }
 
     public void UpdateLike(Post post, string action)
