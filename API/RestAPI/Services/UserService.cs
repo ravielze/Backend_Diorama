@@ -17,6 +17,7 @@ public interface IUserService
     void Register(RegisterAuthContract contract);
     void EditUserProfile(int id, EditUserContract contract);
     void GetUserProfile(int id);
+    void GetOtherUserProfile(string username);
     void Follow(int id, string username);
     void Unfollow(int id, string username);
     void isFollowing(int userId, string username);
@@ -216,5 +217,15 @@ public class UserService : IUserService
             throw new ResponseOK(new SearchUserContract(new List<User>()));
         }
         throw new ResponseOK(new SearchUserContract(result));
+    }
+
+    public void GetOtherUserProfile(string username)
+    {
+        var targetUser = _userRepo.Find(username);
+        if (targetUser == null)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Username not found.");
+        }
+        throw new ResponseOK(new UserContract(targetUser));
     }
 }

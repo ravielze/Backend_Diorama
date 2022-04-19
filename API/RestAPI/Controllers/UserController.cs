@@ -46,6 +46,13 @@ public class UserController : ControllerBase
     }
 
     [Authorize]
+    [HttpGet("{username}")]
+    public void GetOtherUserProfile(string username)
+    {
+        _service.GetOtherUserProfile(username);
+    }
+
+    [Authorize]
     [HttpPut("edit")]
     public void EditUserProfile(EditUserContract contract)
     {

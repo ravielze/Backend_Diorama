@@ -18,6 +18,7 @@ public interface IPostService
     void GetSpesificPost(int userId, int pageId);
     void GetPostForHomePage(int userId);
     void GetPostMine(int userId);
+    void GetOtherPost(string username);
     void GetPostForExplorePage(int userId, int p);
     void EditPost(int userId, EditPostContract contract);
     void CreatePost(int userId, CreatePostContract contract);
@@ -94,6 +95,17 @@ public class PostService : IPostService
 
         var posts = _repo.GetSelf(user!.ID);
 
+        throw new ResponseOK(new PostsContract(posts));
+    }
+
+    public void GetOtherPost(string username)
+    {
+        User? user = _userRepo.Find(username);
+        if (user == null)
+        {
+            throw new ResponseError(HttpStatusCode.NotFound, "Username not found.");
+        }
+        var posts = _repo.GetSelf(user!.ID);
         throw new ResponseOK(new PostsContract(posts));
     }
 

@@ -26,6 +26,13 @@ public class PostController : ControllerBase
     }
 
     [Authorize]
+    [HttpGet("mine/{username}")]
+    public void GetMineOther(string username)
+    {
+        _service.GetOtherPost(username);
+    }
+
+    [Authorize]
     [HttpGet("homepage")]
     public void GetHomePage()
     {
