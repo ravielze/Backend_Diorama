@@ -46,6 +46,16 @@ public class CommentResponseContract
     }
 }
 
+public class CommentsContract
+{
+    public IEnumerable<CommentResponseContract> Comments;
+
+    public CommentsContract(IEnumerable<Comment> comments)
+    {
+        Comments = comments.Select(x => new CommentResponseContract(x, x.Author.Username));
+    }
+}
+
 public class EditPostContract
 {
 
